@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <title>Consistify · habit intelligence</title>
+  <!-- premium fonts & icons -->
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="./assets/css/home.css">
+</head>
+<body>
+  <div class="bg-pattern"></div>
+  <div class="grid-overlay"></div>
+
+  <!-- loading overlay with extra style -->
+  <div class="loading-screen" id="loadingScreen">
+    <div class="spinner"></div>
+    <div class="loading-text">Consistify · loading</div>
+  </div>
+
+  <div class="homepage">
+    <!-- header with direct login link + enhanced animations -->
+    <header class="navbar">
+      <div class="brand">
+        <div class="brand-mark">C</div>
+        <div class="brand-text">
+          <h1>Con<em>sist</em>ify</h1>
+          <div class="tag">intelligent habits</div>
+        </div>
+      </div>
+      <div class="nav-actions">
+        <button class="link-public" onclick="openPublicViewPrompt()">
+          <i class="fas fa-users"></i> public view
+        </button>
+        <!-- MAIN LINK TO LOGIN.HTML – iconic and functional -->
+        <button class="btn-login-hero" onclick="navigateToLogin()">
+          <span>Sign in</span> <i class="fas fa-arrow-right"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Hero with advanced microcopy & interactive stats -->
+    <section class="hero">
+      <div class="hero-left">
+        <div class="eyebrow">
+          <i class="fas fa-bolt"></i> HABIT INTELLIGENCE · CLOUD NATIVE
+        </div>
+        <h2>Design your <i>consistency</i><br>like never before.</h2>
+        <p class="hero-desc">
+          Visual calendars, streaks, monthly insights — all wrapped in a minimal, iconic interface. 
+          Your data syncs across devices, and you can share progress publicly.
+        </p>
+        <!-- stats for pro feel -->
+        <div class="stats-mini">
+          <div class="stat-item">
+            <span class="stat-number">98%</span>
+            <span class="stat-label">retention</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">∞</span>
+            <span class="stat-label">sync</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">1‑click</span>
+            <span class="stat-label">share</span>
+          </div>
+        </div>
+        <div class="hero-cta">
+          <button class="btn-primary-large" onclick="navigateToLogin()">
+            <i class="fas fa-rocket"></i> start now
+          </button>
+          <span style="font-size: 0.85rem; color: var(--muted); display: flex; gap: 8px;">
+            <i class="fas fa-shield-alt"></i> Google · secure
+          </span>
+        </div>
+      </div>
+      <div class="hero-right">
+        <div class="preview-badge">
+          <span><i class="far fa-calendar-alt"></i> live preview</span>
+          <i class="fas fa-circle" style="font-size: 0.4rem; opacity: 0.5;"></i>
+          <span style="background: transparent; border: none; padding-left: 0;">today</span>
+        </div>
+        <div class="habit-preview">
+          <div class="habit-row">
+            <div class="habit-dot"></div>
+            <span class="habit-name">Morning pages</span>
+            <span class="streak-badge">🔥 16</span>
+          </div>
+          <div class="habit-row">
+            <div class="habit-dot" style="background: #8a6b22;"></div>
+            <span class="habit-name">Deep work</span>
+            <span class="streak-badge">⚡ 9</span>
+          </div>
+          <div class="habit-row">
+            <div class="habit-dot" style="background: #c9a84c;"></div>
+            <span class="habit-name">Hydrate</span>
+            <span class="streak-badge">💧 24</span>
+          </div>
+          <div class="habit-row">
+            <div class="habit-dot" style="background: #b89b4a;"></div>
+            <span class="habit-name">Read 20min</span>
+            <span class="streak-badge">📖 13</span>
+          </div>
+        </div>
+        <p style="margin-top: 1.8rem; font-size: 0.7rem; opacity: 0.7; display: flex; gap: 16px;">
+          <i class="fas fa-cloud-upload-alt"></i> synced · Firestore 
+          <i class="fas fa-share-alt" style="margin-left: auto;"></i>
+        </p>
+      </div>
+    </section>
+
+    <!-- Feature grid pro UI -->
+    <div class="features-showcase">
+      <div class="feature-card">
+        <div class="feature-icon-large"><i class="fas fa-chart-line"></i></div>
+        <h4>Habit intelligence</h4>
+        <p>Visual calendars, streaks, monthly & yearly analytics — all in one elegant dashboard. Spot patterns instantly.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon-large"><i class="fas fa-cloud-upload-alt"></i></div>
+        <h4>Cloud sync</h4>
+        <p>Your data lives in Firestore. Access anywhere, any device. No setup, just sign in with Google.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon-large"><i class="fas fa-share-alt"></i></div>
+        <h4>Public sharing</h4>
+        <p>Share a link to your tracker — friends can view progress without logging in. Privacy aware.</p>
+      </div>
+    </div>
+
+    <!-- BIG direct callout to login.html — perfectly designed -->
+    <div class="login-callout">
+      <div class="callout-text">
+        <i class="fas fa-arrow-circle-right"></i>
+        <h3>Ready to build consistency?</h3>
+      </div>
+      <button class="btn-login-page" onclick="navigateToLogin()">
+        <i class="fas fa-sign-in-alt"></i> open login page
+      </button>
+    </div>
+
+    <!-- additional micro copy -->
+    <div style="display: flex; gap: 1rem; margin-top: 2rem; justify-content: flex-end;">
+      <span style="font-size: 0.7rem;"><i class="far fa-clock"></i> 2 min setup</span>
+      <span style="font-size: 0.7rem;"><i class="fas fa-mobile-alt"></i> fully responsive</span>
+    </div>
+
+    <footer class="footer-note">
+      <span>Developed by</span>
+      <a href="#" style="color: var(--gold-dark); text-decoration: none; font-weight: 600; border-bottom: 1.5px dotted var(--gold);">J4H1N<i class="fas fa-external-link-alt" style="font-size: 0.65rem;"></i></a>
+    </footer>
+  </div>
+
+  <script src="./assets/js/home.js"></script>
+  <!-- tiny detail: preload interaction for public view link -->
+  <noscript>Enable JS for full experience</noscript>
+</body>
+</html>

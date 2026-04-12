@@ -1,0 +1,2744 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consistify — Dashboard</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        :root {
+            --ink: #0e0e0e;
+            --paper: #f5f2ec;
+            --cream: #ede9e0;
+            --gold: #c9a84c;
+            --gold-light: #e8d49a;
+            --gold-dark: #8a6b22;
+            --green: #2d6a4f;
+            --green-light: #b7e4c7;
+            --red: #9b2335;
+            --red-light: #f4c0c8;
+            --muted: #8a8070;
+            --border: rgba(14, 14, 14, 0.12);
+            --card: #ffffff;
+            --stripe: rgba(201, 168, 76, 0.05);
+            --nav-h: 64px;
+        }
+
+        html {
+            scroll-behavior: smooth
+        }
+
+        body {
+            font-family: 'DM Mono', monospace;
+            background: var(--paper);
+            color: var(--ink);
+            min-height: 100vh;
+            padding-bottom: 5rem;
+        }
+
+        .grid-bg {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            background-image: linear-gradient(rgba(14, 14, 14, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(14, 14, 14, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+        }
+
+        /* ── NAV ── */
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            height: var(--nav-h);
+            background: rgba(245, 242, 236, 0.96);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 2rem;
+            gap: 1rem;
+        }
+
+        .nav-brand {
+            font-family: 'DM Serif Display', serif;
+            font-size: 1.4rem;
+            letter-spacing: -0.02em;
+        }
+
+        .nav-brand em {
+            font-style: italic;
+            color: var(--gold-dark);
+        }
+
+        .nav-center {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Digital Clock */
+        .digital-clock {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+            transition: transform 0.15s;
+        }
+
+        .digital-clock:hover {
+            transform: scale(1.04);
+        }
+
+        .clock-time {
+            font-family: 'DM Serif Display', serif;
+            font-size: 1.25rem;
+            letter-spacing: 0.08em;
+            color: var(--ink);
+            line-height: 1;
+        }
+
+        .clock-date {
+            font-size: 0.55rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-top: 2px;
+        }
+
+        .clock-fs-hint {
+            font-size: 0.48rem;
+            color: var(--gold-dark);
+            letter-spacing: 0.08em;
+            opacity: 0.7;
+        }
+
+        /* Fullscreen Clock */
+        .clock-fullscreen {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: #0e0e0e;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .clock-fullscreen.open {
+            display: flex;
+        }
+
+        .fs-time {
+            font-family: 'DM Serif Display', serif;
+            font-size: clamp(5rem, 18vw, 16rem);
+            color: var(--gold-light);
+            letter-spacing: 0.05em;
+            line-height: 1;
+            animation: fsPulse 2s ease-in-out infinite;
+        }
+
+        .fs-seconds {
+            font-family: 'DM Mono', monospace;
+            font-size: clamp(1.5rem, 5vw, 4rem);
+            color: var(--gold);
+            letter-spacing: 0.25em;
+            margin-top: 0.5rem;
+        }
+
+        .fs-date {
+            font-family: 'DM Mono', monospace;
+            font-size: clamp(0.8rem, 2.5vw, 1.5rem);
+            color: #8a8070;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            margin-top: 1.5rem;
+        }
+
+        .fs-exit {
+            position: absolute;
+            top: 2rem;
+            right: 2rem;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #fff;
+            border-radius: 4px;
+            padding: 0.5rem 1rem;
+            font-family: 'DM Mono', monospace;
+            font-size: 0.72rem;
+            cursor: pointer;
+            letter-spacing: 0.1em;
+            transition: all 0.15s;
+        }
+
+        .fs-exit:hover {
+            background: rgba(201, 168, 76, 0.2);
+            border-color: var(--gold);
+        }
+
+        @keyframes fsPulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.85;
+            }
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .avatar-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 2px solid var(--border);
+            overflow: hidden;
+            cursor: pointer;
+            background: var(--cream);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 500;
+            transition: border-color 0.15s;
+            flex-shrink: 0;
+        }
+
+        .avatar-btn:hover {
+            border-color: var(--gold);
+        }
+
+        .avatar-btn img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .public-badge {
+            background: var(--gold-light);
+            color: var(--gold-dark);
+            font-size: 0.62rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            padding: 3px 8px;
+            border-radius: 2px;
+        }
+
+        /* Public viewer info bar */
+        .viewer-bar {
+            background: linear-gradient(90deg, rgba(201, 168, 76, 0.08), rgba(201, 168, 76, 0.03));
+            border-bottom: 1px solid rgba(201, 168, 76, 0.25);
+            padding: 0.5rem 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.72rem;
+            color: var(--muted);
+        }
+
+        .viewer-bar strong {
+            color: var(--ink);
+        }
+
+        .viewer-avatar {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: var(--cream);
+            border: 1.5px solid var(--gold-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .viewer-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* ── MAIN SHELL ── */
+        .shell {
+            position: relative;
+            z-index: 1;
+            max-width: 920px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+
+        /* ── STATS ROW ── */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 1rem 1.25rem;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(201, 168, 76, 0.1);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--gold);
+        }
+
+        .stat-card .val {
+            font-family: 'DM Serif Display', serif;
+            font-size: 1.9rem;
+            color: var(--ink);
+            line-height: 1;
+        }
+
+        .stat-card .lbl {
+            font-size: 0.62rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--muted);
+            margin-top: 0.35rem;
+        }
+
+        .stat-card .stat-icon {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.4rem;
+            opacity: 0.08;
+        }
+
+        /* ── FAB ADD BUTTON ── */
+        .fab {
+            position: fixed;
+            bottom: 2.5rem;
+            right: 2rem;
+            z-index: 100;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: var(--ink);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 20px rgba(14, 14, 14, 0.25);
+            transition: all 0.2s;
+            color: var(--paper);
+        }
+
+        .fab:hover {
+            background: var(--gold-dark);
+            transform: scale(1.08);
+        }
+
+        .fab i {
+            font-size: 1.3rem;
+            transition: transform 0.25s;
+        }
+
+        .fab.open i {
+            transform: rotate(45deg);
+        }
+
+        /* ── ADD HABIT SLIDEDOWN ── */
+        .add-drawer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s;
+            opacity: 0;
+            margin-bottom: 0;
+        }
+
+        .add-drawer.open {
+            max-height: 200px;
+            opacity: 1;
+            margin-bottom: 1.5rem;
+        }
+
+        .add-zone {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 1.25rem 1.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            align-items: center;
+            border-top: 2px solid var(--gold);
+        }
+
+        .add-zone input[type="text"] {
+            flex: 1;
+            min-width: 180px;
+            border: none;
+            border-bottom: 1.5px solid var(--border);
+            background: transparent;
+            font-family: 'DM Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--ink);
+            padding: 0.4rem 0;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .add-zone input[type="text"]:focus {
+            border-color: var(--gold);
+        }
+
+        .add-zone input[type="text"]::placeholder {
+            color: var(--muted);
+        }
+
+        .icon-picker-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border: 1px solid var(--border);
+            border-radius: 3px;
+            padding: 0.4rem 0.75rem;
+            cursor: pointer;
+            font-family: 'DM Mono', monospace;
+            font-size: 0.75rem;
+            background: var(--cream);
+            transition: all 0.15s;
+            white-space: nowrap;
+        }
+
+        .icon-picker-btn:hover {
+            border-color: var(--gold);
+        }
+
+        .selected-icon-preview {
+            font-size: 1rem;
+        }
+
+        .btn-add {
+            background: var(--ink);
+            color: var(--paper);
+            border: none;
+            border-radius: 3px;
+            font-family: 'DM Mono', monospace;
+            font-size: 0.72rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            padding: 0.55rem 1.25rem;
+            cursor: pointer;
+            transition: background 0.15s;
+            white-space: nowrap;
+        }
+
+        .btn-add:hover {
+            background: var(--gold-dark);
+        }
+
+        /* ── EMOJI PICKER ── */
+        .emoji-popup {
+            position: fixed;
+            z-index: 200;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 1rem;
+            width: 320px;
+            max-height: 360px;
+            overflow-y: auto;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+            display: none;
+        }
+
+        .emoji-popup.open {
+            display: block;
+        }
+
+        .emoji-search {
+            width: 100%;
+            border: 1px solid var(--border);
+            border-radius: 3px;
+            font-family: 'DM Mono', monospace;
+            font-size: 0.78rem;
+            color: var(--ink);
+            padding: 0.4rem 0.6rem;
+            outline: none;
+            background: var(--cream);
+            margin-bottom: 0.75rem;
+            transition: border-color 0.2s;
+        }
+
+        .emoji-search:focus {
+            border-color: var(--gold);
+        }
+
+        .emoji-category {
+            font-size: 0.6rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin: 0.5rem 0 0.35rem;
+        }
+
+        .emoji-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+
+        .emoji-item {
+            width: 36px;
+            height: 36px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            cursor: pointer;
+            border: 1.5px solid transparent;
+            transition: all 0.12s;
+        }
+
+        .emoji-item:hover {
+            background: var(--cream);
+            border-color: var(--border);
+        }
+
+        .emoji-item.selected {
+            border-color: var(--gold);
+            background: var(--gold-light);
+        }
+
+        /* ── MONTH CALENDAR PICKER ── */
+        .month-picker-wrap {
+            position: relative;
+        }
+
+        .month-display-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: none;
+            border: 1px solid var(--border);
+            border-radius: 3px;
+            padding: 0.3rem 0.75rem;
+            cursor: pointer;
+            font-family: 'DM Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--ink);
+            transition: all 0.15s;
+            white-space: nowrap;
+        }
+
+        .month-display-btn:hover {
+            border-color: var(--gold);
+            color: var(--gold-dark);
+        }
+
+        .month-nav-arrow {
+            background: none;
+            border: 1px solid var(--border);
+            border-radius: 2px;
+            width: 26px;
+            height: 26px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            color: var(--ink);
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .month-nav-arrow:hover {
+            border-color: var(--gold);
+            color: var(--gold-dark);
+        }
+
+        .month-nav-inline {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .cal-dropdown {
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+            z-index: 200;
+            width: 260px;
+            display: none;
+            overflow: hidden;
+        }
+
+        .cal-dropdown.open {
+            display: block;
+            animation: dropIn 0.18s ease;
+        }
+
+        @keyframes dropIn {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-6px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0)
+            }
+        }
+
+        .cal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border);
+            background: var(--stripe);
+        }
+
+        .cal-year-label {
+            font-family: 'DM Serif Display', serif;
+            font-size: 1.1rem;
+        }
+
+        .cal-months {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 4px;
+            padding: 0.75rem;
+        }
+
+        .cal-month-cell {
+            border: 1.5px solid transparent;
+            border-radius: 3px;
+            padding: 0.45rem;
+            text-align: center;
+            cursor: pointer;
+            font-size: 0.72rem;
+            letter-spacing: 0.05em;
+            transition: all 0.12s;
+        }
+
+        .cal-month-cell:hover {
+            background: var(--cream);
+            border-color: var(--border);
+        }
+
+        .cal-month-cell.active {
+            background: var(--ink);
+            color: var(--paper);
+            border-color: var(--ink);
+        }
+
+        .cal-month-cell.current-month {
+            border-color: var(--gold);
+            color: var(--gold-dark);
+        }
+
+        /* ── HABIT ROW ── */
+        .habit-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .habit-row {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+            animation: slideIn 0.3s ease;
+            transition: box-shadow 0.2s;
+        }
+
+        .habit-row:hover {
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px)
+            }
+
+            to {
+                opacity: 1;
+                transform: none
+            }
+        }
+
+        .habit-head {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.85rem 1.25rem;
+            border-bottom: 1px solid var(--border);
+            background: var(--stripe);
+            flex-wrap: wrap;
+        }
+
+        .habit-icon {
+            font-size: 1.15rem;
+            line-height: 1;
+        }
+
+        .habit-name {
+            flex: 1;
+            font-size: 0.83rem;
+            font-weight: 500;
+            letter-spacing: 0.02em;
+            min-width: 100px;
+        }
+
+        .habit-tags {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            font-size: 0.62rem;
+            letter-spacing: 0.08em;
+            padding: 2px 8px;
+            border-radius: 2px;
+            white-space: nowrap;
+        }
+
+        .tag-streak {
+            background: rgba(201, 168, 76, 0.15);
+            color: var(--gold-dark);
+        }
+
+        .tag-pct {
+            background: var(--cream);
+            color: var(--muted);
+        }
+
+        .tag-best {
+            background: var(--green-light);
+            color: var(--green);
+        }
+
+        .habit-actions {
+            display: flex;
+            gap: 4px;
+        }
+
+        .btn-icon-sm {
+            background: none;
+            border: 1px solid var(--border);
+            border-radius: 2px;
+            cursor: pointer;
+            color: var(--muted);
+            font-size: 0.7rem;
+            width: 26px;
+            height: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+            font-family: 'DM Mono', monospace;
+        }
+
+        .btn-icon-sm:hover.del {
+            border-color: var(--red);
+            color: var(--red);
+        }
+
+        .btn-icon-sm:hover.analytics {
+            border-color: var(--gold);
+            color: var(--gold-dark);
+        }
+
+        .habit-bar {
+            height: 2px;
+            background: var(--cream);
+        }
+
+        .habit-bar-fill {
+            height: 100%;
+            background: var(--gold);
+            transition: width 0.5s ease;
+        }
+
+        .days-header-row {
+            display: grid;
+            gap: 2px;
+            padding: 0.5rem 1.25rem 0.2rem;
+        }
+
+        .day-num {
+            font-size: 0.5rem;
+            text-align: center;
+            color: var(--muted);
+        }
+
+        .day-num.today-lbl {
+            color: var(--gold-dark);
+            font-weight: 500;
+        }
+
+        .days-grid-row {
+            display: grid;
+            gap: 2px;
+            padding: 0.5rem 1.25rem 1rem;
+        }
+
+        .day-cell {
+            aspect-ratio: 1;
+            border-radius: 2px;
+            background: var(--cream);
+            cursor: pointer;
+            transition: all 0.12s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid transparent;
+            position: relative;
+            font-size: 0.6rem;
+        }
+
+        .day-cell:hover:not(.future) {
+            border-color: var(--gold);
+        }
+
+        .day-cell.done {
+            background: var(--ink);
+            color: var(--gold-light);
+        }
+
+        .day-cell.done::after {
+            content: '✓';
+            font-size: clamp(0.35rem, 1.2vw, 0.65rem);
+            color: var(--gold-light);
+            font-weight: bold;
+        }
+
+        .day-cell.today {
+            border-color: var(--gold) !important;
+        }
+
+        .day-cell.future {
+            opacity: 0.3;
+            cursor: default;
+            pointer-events: none;
+        }
+
+        /* ── PROFILE DROPDOWN ── */
+        .profile-dropdown {
+            position: fixed;
+            z-index: 300;
+            top: calc(var(--nav-h) + 8px);
+            right: 1.5rem;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            width: 240px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+            display: none;
+            overflow: hidden;
+            animation: dropInRight 0.2s ease;
+        }
+
+        @keyframes dropInRight {
+            from {
+                opacity: 0;
+                transform: translateY(-6px)
+            }
+
+            to {
+                opacity: 1;
+                transform: none
+            }
+        }
+
+        .profile-dropdown.open {
+            display: block;
+        }
+
+        .pd-header {
+            padding: 1.25rem 1.25rem 1rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .pd-avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            overflow: hidden;
+            background: var(--cream);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            font-weight: 500;
+            border: 2px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .pd-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .pd-name {
+            font-size: 0.78rem;
+            font-weight: 500;
+            line-height: 1.3;
+        }
+
+        .pd-email {
+            font-size: 0.62rem;
+            color: var(--muted);
+            margin-top: 2px;
+            word-break: break-all;
+        }
+
+        .pd-menu {
+            padding: 0.5rem 0;
+        }
+
+        .pd-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.65rem 1.25rem;
+            font-size: 0.75rem;
+            letter-spacing: 0.03em;
+            cursor: pointer;
+            transition: background 0.12s;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            font-family: 'DM Mono', monospace;
+            color: var(--ink);
+        }
+
+        .pd-item:hover {
+            background: var(--cream);
+        }
+
+        .pd-item.danger:hover {
+            background: var(--red-light);
+            color: var(--red);
+        }
+
+        .pd-divider {
+            height: 1px;
+            background: var(--border);
+            margin: 0.25rem 0;
+        }
+
+        .pd-item-icon {
+            font-size: 0.85rem;
+            width: 18px;
+            text-align: center;
+            color: var(--gold-dark);
+        }
+
+        /* ── MODALS ── */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 400;
+            background: rgba(14, 14, 14, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-overlay.open {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            width: 100%;
+            max-width: 560px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            animation: modalIn 0.25s ease;
+        }
+
+        @keyframes modalIn {
+            from {
+                opacity: 0;
+                transform: scale(0.97)
+            }
+
+            to {
+                opacity: 1;
+                transform: none
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.5rem 1.75rem 1rem;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            background: var(--card);
+            z-index: 1;
+        }
+
+        .modal-title {
+            font-family: 'DM Serif Display', serif;
+            font-size: 1.3rem;
+        }
+
+        .modal-close {
+            background: none;
+            border: 1px solid var(--border);
+            border-radius: 2px;
+            width: 28px;
+            height: 28px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.12s;
+        }
+
+        .modal-close:hover {
+            border-color: var(--red);
+            color: var(--red);
+        }
+
+        .modal-body {
+            padding: 1.5rem 1.75rem;
+        }
+
+        /* Profile view */
+        .profile-hero {
+            text-align: center;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 1.5rem;
+        }
+
+        .profile-avatar-lg {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            overflow: hidden;
+            background: var(--cream);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            border: 3px solid var(--border);
+            margin: 0 auto 1rem;
+        }
+
+        .profile-avatar-lg img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .profile-display-name {
+            font-family: 'DM Serif Display', serif;
+            font-size: 1.4rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .profile-username {
+            font-size: 0.7rem;
+            color: var(--muted);
+            letter-spacing: 0.08em;
+        }
+
+        .profile-bio {
+            font-size: 0.75rem;
+            color: var(--muted);
+            margin-top: 0.5rem;
+            line-height: 1.6;
+        }
+
+        .share-url-box {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .share-url-box input {
+            flex: 1;
+            border: 1px solid var(--border);
+            border-radius: 3px;
+            background: var(--cream);
+            font-family: 'DM Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--muted);
+            padding: 0.45rem 0.65rem;
+            outline: none;
+        }
+
+        .btn-copy {
+            background: var(--ink);
+            color: var(--paper);
+            border: none;
+            border-radius: 3px;
+            font-family: 'DM Mono', monospace;
+            font-size: 0.68rem;
+            padding: 0 0.85rem;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: background 0.15s;
+            letter-spacing: 0.05em;
+        }
+
+        .btn-copy:hover {
+            background: var(--gold-dark);
+        }
+
+        /* Analytics tabs */
+        .tab-bar {
+            display: flex;
+            gap: 0;
+            border: 1px solid var(--border);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+        }
+
+        .tab-btn {
+            flex: 1;
+            background: none;
+            border: none;
+            font-family: 'DM Mono', monospace;
+            font-size: 0.68rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            padding: 0.55rem;
+            cursor: pointer;
+            transition: all 0.15s;
+            color: var(--muted);
+        }
+
+        .tab-btn.active {
+            background: var(--ink);
+            color: var(--paper);
+        }
+
+        .tab-panel {
+            display: none;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        .analytics-title {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            color: var(--muted);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .analytics-title::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        .chart-wrap {
+            position: relative;
+            height: 180px;
+            margin-bottom: 1rem;
+        }
+
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .a-card {
+            background: var(--cream);
+            border-radius: 3px;
+            padding: 0.75rem 0.85rem;
+            text-align: center;
+        }
+
+        .a-card .av {
+            font-family: 'DM Serif Display', serif;
+            font-size: 1.4rem;
+            color: var(--ink);
+            line-height: 1;
+        }
+
+        .a-card .al {
+            font-size: 0.58rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--muted);
+            margin-top: 0.25rem;
+        }
+
+        .a-card-wide {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Heatmap */
+        .heatmap-wrap {
+            display: grid;
+            gap: 3px;
+            grid-template-columns: repeat(52, 1fr);
+            margin-top: 0.75rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .hm-cell {
+            aspect-ratio: 1;
+            border-radius: 1px;
+            background: var(--cream);
+            cursor: default;
+            position: relative;
+        }
+
+        .hm-cell.l1 {
+            background: #e8d49a;
+        }
+
+        .hm-cell.l2 {
+            background: #c9a84c;
+        }
+
+        .hm-cell.l3 {
+            background: #8a6b22;
+        }
+
+        .hm-cell.l4 {
+            background: var(--ink);
+        }
+
+        /* Streak calendar mini */
+        .streak-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 3px;
+            margin-bottom: 1rem;
+        }
+
+        .sg-cell {
+            aspect-ratio: 1;
+            border-radius: 2px;
+            background: var(--cream);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.45rem;
+            color: var(--muted);
+        }
+
+        .sg-cell.done {
+            background: var(--ink);
+            color: var(--gold-light);
+            font-size: 0.55rem;
+        }
+
+        .sg-cell.today {
+            border: 1.5px solid var(--gold);
+        }
+
+        /* Edit profile */
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--muted);
+            margin-bottom: 0.4rem;
+        }
+
+        .form-input {
+            width: 100%;
+            border: 1px solid var(--border);
+            border-radius: 3px;
+            background: var(--cream);
+            font-family: 'DM Mono', monospace;
+            font-size: 0.82rem;
+            color: var(--ink);
+            padding: 0.6rem 0.85rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-input:focus {
+            border-color: var(--gold);
+        }
+
+        .username-wrap {
+            position: relative;
+        }
+
+        .username-prefix {
+            position: absolute;
+            left: 0.85rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.82rem;
+            color: var(--muted);
+            pointer-events: none;
+        }
+
+        .username-wrap .form-input {
+            padding-left: 1.35rem;
+        }
+
+        .btn-save {
+            background: var(--ink);
+            color: var(--paper);
+            border: none;
+            border-radius: 3px;
+            font-family: 'DM Mono', monospace;
+            font-size: 0.75rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            padding: 0.65rem 1.5rem;
+            cursor: pointer;
+            transition: background 0.15s;
+            width: 100%;
+            margin-top: 0.5rem;
+        }
+
+        .btn-save:hover {
+            background: var(--gold-dark);
+        }
+
+        /* Account settings */
+        .settings-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .settings-section-title {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--muted);
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.4rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.65rem 0;
+            border-bottom: 1px solid rgba(14, 14, 14, 0.05);
+        }
+
+        .toggle-row label {
+            font-size: 0.75rem;
+        }
+
+        .toggle-row .hint {
+            font-size: 0.6rem;
+            color: var(--muted);
+        }
+
+        .toggle {
+            position: relative;
+            width: 36px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+
+        .toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            inset: 0;
+            background: var(--cream);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .toggle-slider::before {
+            content: '';
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: var(--muted);
+            left: 2px;
+            top: 2px;
+            transition: all 0.2s;
+        }
+
+        .toggle input:checked+.toggle-slider {
+            background: var(--ink);
+            border-color: var(--ink);
+        }
+
+        .toggle input:checked+.toggle-slider::before {
+            background: var(--gold);
+            transform: translateX(16px);
+        }
+
+        .btn-danger-outline {
+            background: none;
+            border: 1px solid var(--red);
+            color: var(--red);
+            border-radius: 3px;
+            font-family: 'DM Mono', monospace;
+            font-size: 0.72rem;
+            padding: 0.55rem 1rem;
+            cursor: pointer;
+            transition: all 0.15s;
+            letter-spacing: 0.05em;
+        }
+
+        .btn-danger-outline:hover {
+            background: var(--red);
+            color: #fff;
+        }
+
+        .export-btns {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-top: 0.5rem;
+        }
+
+        .btn-export {
+            background: var(--cream);
+            border: 1px solid var(--border);
+            border-radius: 3px;
+            font-family: 'DM Mono', monospace;
+            font-size: 0.7rem;
+            padding: 0.45rem 0.9rem;
+            cursor: pointer;
+            transition: all 0.15s;
+            letter-spacing: 0.04em;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .btn-export:hover {
+            border-color: var(--gold);
+            color: var(--gold-dark);
+        }
+
+        /* Habit analytics modal */
+        .habit-analytics-hero {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding-bottom: 1.25rem;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 1.25rem;
+        }
+
+        .hab-icon-lg {
+            font-size: 2.5rem;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--cream);
+            border-radius: 6px;
+            border: 1px solid var(--border);
+        }
+
+        .hab-info h2 {
+            font-family: 'DM Serif Display', serif;
+            font-size: 1.3rem;
+        }
+
+        .hab-info p {
+            font-size: 0.68rem;
+            color: var(--muted);
+            margin-top: 2px;
+        }
+
+        /* Delete confirm */
+        .confirm-input {
+            width: 100%;
+            border: 1px solid var(--red);
+            border-radius: 3px;
+            background: rgba(155, 35, 53, 0.04);
+            font-family: 'DM Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--red);
+            padding: 0.6rem 0.85rem;
+            outline: none;
+            margin: 1rem 0;
+            text-align: center;
+            letter-spacing: 0.1em;
+        }
+
+        .btn-confirm-del {
+            background: var(--red);
+            color: white;
+            border: none;
+            border-radius: 3px;
+            font-family: 'DM Mono', monospace;
+            font-size: 0.75rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            padding: 0.6rem 1.25rem;
+            cursor: pointer;
+            transition: opacity 0.15s;
+            width: 100%;
+        }
+
+        .btn-confirm-del:disabled {
+            opacity: 0.4;
+            cursor: default;
+        }
+
+        .btn-cancel-del {
+            background: none;
+            border: 1px solid var(--border);
+            border-radius: 3px;
+            font-family: 'DM Mono', monospace;
+            font-size: 0.75rem;
+            padding: 0.55rem 1.25rem;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 0.5rem;
+            transition: border-color 0.15s;
+        }
+
+        .btn-cancel-del:hover {
+            border-color: var(--muted);
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 7rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--ink);
+            color: var(--paper);
+            font-size: 0.72rem;
+            letter-spacing: 0.06em;
+            padding: 0.6rem 1.25rem;
+            border-radius: 3px;
+            display: none;
+            z-index: 999;
+            animation: toastIn 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .toast.show {
+            display: block;
+        }
+
+        @keyframes toastIn {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(8px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(-50%)
+            }
+        }
+
+        /* Loading */
+        .loading-screen {
+            position: fixed;
+            inset: 0;
+            background: var(--paper);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .spinner {
+            width: 32px;
+            height: 32px;
+            border: 2px solid var(--border);
+            border-top-color: var(--gold);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg)
+            }
+        }
+
+        .loading-screen p {
+            font-size: 0.7rem;
+            letter-spacing: 0.1em;
+            color: var(--muted);
+        }
+
+        /* Responsive */
+        @media(max-width:700px) {
+            .stats-row {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .analytics-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            nav {
+                padding: 0 1rem;
+            }
+
+            .shell {
+                padding: 1.5rem 1rem;
+            }
+
+            .add-zone {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .profile-dropdown {
+                right: 0.5rem;
+                width: 220px;
+            }
+
+            .a-card-wide {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .clock-time {
+                font-size: 1rem;
+            }
+        }
+
+        @media(max-width:480px) {
+            .stats-row {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .modal-body {
+                padding: 1rem 1.25rem;
+            }
+
+            .modal-header {
+                padding: 1.25rem 1.25rem 0.85rem;
+            }
+
+            .clock-date,
+            .clock-fs-hint {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="grid-bg"></div>
+    <div class="loading-screen" id="loadingScreen">
+        <div class="spinner"></div>
+        <p>Loading your habits...</p>
+    </div>
+
+    <!-- FULLSCREEN CLOCK -->
+    <div class="clock-fullscreen" id="clockFullscreen" onclick="toggleFullscreenClock(false)">
+        <button class="fs-exit" onclick="event.stopPropagation();toggleFullscreenClock(false)"><i
+                class="fa fa-compress"></i> Exit fullscreen</button>
+        <div class="fs-time" id="fsTimeH">00:00</div>
+        <div class="fs-seconds" id="fsTimeSec">00</div>
+        <div class="fs-date" id="fsDate">—</div>
+    </div>
+
+    <!-- NAV -->
+    <nav>
+        <div class="nav-brand">Con<em>sist</em>ify</div>
+        <div class="nav-center">
+            <div class="digital-clock" onclick="toggleFullscreenClock(true)" title="Click for fullscreen clock">
+                <div class="clock-time" id="navClock">00:00:00</div>
+                <div class="clock-date" id="navClockDate">—</div>
+                <div class="clock-fs-hint"><i class="fa fa-expand" style="font-size:0.45rem;"></i> fullscreen</div>
+            </div>
+        </div>
+        <div id="publicBadge" class="public-badge" style="display:none;"><i class="fa fa-eye"></i> Public View</div>
+        <div class="nav-right">
+            <div class="avatar-btn" id="avatarBtn" onclick="toggleProfileDropdown()" style="display:none;"
+                title="Profile"></div>
+        </div>
+    </nav>
+
+    <!-- Public viewer bar -->
+    <div class="viewer-bar" id="viewerBar" style="display:none;">
+        <div class="viewer-avatar" id="viewerAvatarEl"></div>
+        <span>Viewing <strong id="viewerNameEl">—</strong>'s habit tracker</span>
+        <span style="margin-left:auto;color:var(--gold-dark);"><i class="fa fa-lock"></i> read-only</span>
+    </div>
+
+    <!-- Profile dropdown -->
+    <div class="profile-dropdown" id="profileDropdown">
+        <div class="pd-header">
+            <div class="pd-avatar" id="pdAvatar"></div>
+            <div>
+                <div class="pd-name" id="pdName">—</div>
+                <div class="pd-email" id="pdEmail">—</div>
+            </div>
+        </div>
+        <div class="pd-menu">
+            <button class="pd-item" onclick="openViewProfile()"><span class="pd-item-icon"><i
+                        class="fa fa-chart-pie"></i></span>Profile & Analytics</button>
+            <button class="pd-item" onclick="openEditProfile()"><span class="pd-item-icon"><i
+                        class="fa fa-pen"></i></span>Edit profile</button>
+            <button class="pd-item" onclick="openAccountSettings()"><span class="pd-item-icon"><i
+                        class="fa fa-gear"></i></span>Account settings</button>
+            <button class="pd-item" onclick="copyShareLink()"><span class="pd-item-icon"><i
+                        class="fa fa-share-nodes"></i></span>Share my tracker</button>
+            <div class="pd-divider"></div>
+            <button class="pd-item danger" onclick="signOut()"><span class="pd-item-icon"><i
+                        class="fa fa-right-from-bracket"></i></span>Sign out</button>
+        </div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="shell">
+        <!-- Stats -->
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="val" id="statHabits">0</div>
+                <div class="lbl">Active habits</div>
+                <div class="stat-icon"><i class="fa fa-list-check"></i></div>
+            </div>
+            <div class="stat-card">
+                <div class="val" id="statStreak">0</div>
+                <div class="lbl">Best streak</div>
+                <div class="stat-icon"><i class="fa fa-fire"></i></div>
+            </div>
+            <div class="stat-card">
+                <div class="val" id="statRate">0%</div>
+                <div class="lbl">Today's rate</div>
+                <div class="stat-icon"><i class="fa fa-percent"></i></div>
+            </div>
+            <div class="stat-card">
+                <div class="val" id="statDone">0</div>
+                <div class="lbl">Done today</div>
+                <div class="stat-icon"><i class="fa fa-circle-check"></i></div>
+            </div>
+        </div>
+
+        <!-- Month nav with calendar picker -->
+        <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1.5rem;">
+            <div class="month-nav-inline">
+                <button class="month-nav-arrow" onclick="shiftMonth(-1)"><i class="fa fa-chevron-left"></i></button>
+                <div class="month-picker-wrap">
+                    <button class="month-display-btn" onclick="toggleCalDropdown()" id="monthLabel">
+                        <i class="fa fa-calendar-days" style="font-size:0.7rem;color:var(--gold-dark);"></i>
+                        <span>—</span>
+                        <i class="fa fa-chevron-down" style="font-size:0.55rem;color:var(--muted);"></i>
+                    </button>
+                    <div class="cal-dropdown" id="calDropdown">
+                        <div class="cal-header">
+                            <button class="month-nav-arrow" onclick="calShiftYear(-1);event.stopPropagation()"><i
+                                    class="fa fa-chevron-left"></i></button>
+                            <div class="cal-year-label" id="calYear">2026</div>
+                            <button class="month-nav-arrow" onclick="calShiftYear(1);event.stopPropagation()"><i
+                                    class="fa fa-chevron-right"></i></button>
+                        </div>
+                        <div class="cal-months" id="calMonths"></div>
+                    </div>
+                </div>
+                <button class="month-nav-arrow" onclick="shiftMonth(1)"><i class="fa fa-chevron-right"></i></button>
+            </div>
+            <div style="flex:1;"></div>
+            <span style="font-size:0.65rem;color:var(--muted);letter-spacing:0.08em;" id="addHint"
+                title="Click + to add habit"><i class="fa fa-circle-plus" style="color:var(--gold-dark);"></i> add habit
+                below</span>
+        </div>
+
+        <!-- Add habit drawer -->
+        <div class="add-drawer" id="addDrawer">
+            <div class="add-zone">
+                <input type="text" id="habitInput" placeholder="New habit name..." maxlength="44" />
+                <button class="icon-picker-btn" onclick="openEmojiPicker(event)" id="iconPickerBtn">
+                    <span class="selected-icon-preview" id="selectedIconPreview">✦</span>
+                    <span style="font-size:0.65rem;color:var(--muted);">icon</span>
+                </button>
+                <button class="btn-add" onclick="addHabit()"><i class="fa fa-plus"></i> Add</button>
+            </div>
+        </div>
+
+        <!-- Habit list -->
+        <div class="habit-list" id="habitList"></div>
+    </div>
+
+    <!-- FAB -->
+    <button class="fab" id="fab" onclick="toggleAddDrawer()" title="Add habit" style="display:none;">
+        <i class="fa fa-plus"></i>
+    </button>
+
+    <!-- EMOJI PICKER -->
+    <div class="emoji-popup" id="emojiPopup">
+        <input class="emoji-search" type="text" placeholder="Search icons..." id="emojiSearch"
+            oninput="filterEmojis()" />
+        <div id="emojiContent"></div>
+    </div>
+
+    <!-- PROFILE VIEW MODAL -->
+    <div class="modal-overlay" id="viewProfileModal">
+        <div class="modal" style="max-width:640px;">
+            <div class="modal-header">
+                <div class="modal-title">Profile & Analytics</div>
+                <button class="modal-close" onclick="closeModal('viewProfileModal')"><i
+                        class="fa fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="profile-hero">
+                    <div class="profile-avatar-lg" id="vp-avatar"></div>
+                    <div class="profile-display-name" id="vp-name">—</div>
+                    <div class="profile-username" id="vp-username">@username</div>
+                    <div class="profile-bio" id="vp-bio"></div>
+                    <div class="share-url-box">
+                        <input type="text" id="vp-shareUrl" readonly />
+                        <button class="btn-copy" onclick="copyShareLink()"><i class="fa fa-copy"></i> Copy</button>
+                    </div>
+                </div>
+
+                <!-- Tabs -->
+                <div class="tab-bar">
+                    <button class="tab-btn active" onclick="switchTab('overview')">Overview</button>
+                    <button class="tab-btn" onclick="switchTab('monthly')">Monthly</button>
+                    <button class="tab-btn" onclick="switchTab('yearly')">Yearly</button>
+                    <button class="tab-btn" onclick="switchTab('habits')">Per Habit</button>
+                </div>
+
+                <!-- Overview Tab -->
+                <div class="tab-panel active" id="tab-overview">
+                    <div class="analytics-title">This month</div>
+                    <div class="analytics-grid">
+                        <div class="a-card">
+                            <div class="av" id="an-monthRate">0%</div>
+                            <div class="al">Monthly rate</div>
+                        </div>
+                        <div class="a-card">
+                            <div class="av" id="an-bestStreak">0</div>
+                            <div class="al">Best streak</div>
+                        </div>
+                        <div class="a-card">
+                            <div class="av" id="an-totalDone">0</div>
+                            <div class="al">Total done</div>
+                        </div>
+                    </div>
+                    <div class="analytics-title">All time</div>
+                    <div class="a-card-wide"
+                        style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.75rem;margin-bottom:1.5rem;">
+                        <div class="a-card">
+                            <div class="av" id="an-allDone">0</div>
+                            <div class="al">All check-ins</div>
+                        </div>
+                        <div class="a-card">
+                            <div class="av" id="an-allStreak">0</div>
+                            <div class="al">Longest ever</div>
+                        </div>
+                        <div class="a-card">
+                            <div class="av" id="an-habCount">0</div>
+                            <div class="al">Habits tracked</div>
+                        </div>
+                        <div class="a-card">
+                            <div class="av" id="an-activeDays">0</div>
+                            <div class="al">Active days</div>
+                        </div>
+                    </div>
+                    <div class="analytics-title">Yearly heatmap</div>
+                    <div class="heatmap-wrap" id="yearlyHeatmap"></div>
+                    <div style="display:flex;gap:6px;align-items:center;margin-top:0.5rem;flex-wrap:wrap;">
+                        <span style="font-size:0.6rem;color:var(--muted);">Less</span>
+                        <div
+                            style="width:12px;height:12px;border-radius:2px;background:var(--cream);border:1px solid var(--border)">
+                        </div>
+                        <div style="width:12px;height:12px;border-radius:2px;background:#e8d49a;"></div>
+                        <div style="width:12px;height:12px;border-radius:2px;background:#c9a84c;"></div>
+                        <div style="width:12px;height:12px;border-radius:2px;background:#8a6b22;"></div>
+                        <div style="width:12px;height:12px;border-radius:2px;background:var(--ink);"></div>
+                        <span style="font-size:0.6rem;color:var(--muted);">More</span>
+                    </div>
+                </div>
+
+                <!-- Monthly Tab -->
+                <div class="tab-panel" id="tab-monthly">
+                    <div class="analytics-title">Last 6 months consistency</div>
+                    <div class="chart-wrap"><canvas id="monthlyChart"></canvas></div>
+                    <div class="analytics-title" style="margin-top:1rem;">Weekly breakdown (this month)</div>
+                    <div class="chart-wrap"><canvas id="weeklyChart"></canvas></div>
+                </div>
+
+                <!-- Yearly Tab -->
+                <div class="tab-panel" id="tab-yearly">
+                    <div class="analytics-title">Year at a glance</div>
+                    <div class="chart-wrap"><canvas id="yearlyChart"></canvas></div>
+                    <div class="analytics-title" style="margin-top:1rem;">Best months</div>
+                    <div id="bestMonthsList"></div>
+                </div>
+
+                <!-- Per Habit Tab -->
+                <div class="tab-panel" id="tab-habits">
+                    <div class="analytics-title">Per-habit completion (this month)</div>
+                    <div id="habitBreakdown"></div>
+                    <div class="analytics-title" style="margin-top:1rem;">Streak leaderboard</div>
+                    <div id="streakLeaderboard"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- EDIT PROFILE MODAL -->
+    <div class="modal-overlay" id="editProfileModal">
+        <div class="modal" style="max-width:420px;">
+            <div class="modal-header">
+                <div class="modal-title">Edit profile</div>
+                <button class="modal-close" onclick="closeModal('editProfileModal')"><i
+                        class="fa fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Display name</label>
+                    <input class="form-input" type="text" id="ep-displayName" maxlength="40" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Username (for sharing)</label>
+                    <div class="username-wrap">
+                        <span class="username-prefix">@</span>
+                        <input class="form-input" type="text" id="ep-username" maxlength="24" placeholder="yourname" />
+                    </div>
+                    <p style="font-size:0.62rem;color:var(--muted);margin-top:0.35rem;">Letters, numbers, underscores
+                        only.</p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Bio (optional)</label>
+                    <textarea class="form-input" id="ep-bio" rows="2" maxlength="120"
+                        style="resize:vertical;"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Profile picture URL (optional)</label>
+                    <input class="form-input" type="url" id="ep-photo" placeholder="https://..." />
+                </div>
+                <div id="ep-error" style="font-size:0.72rem;color:var(--red);margin-bottom:0.75rem;display:none;"></div>
+                <button class="btn-save" onclick="saveProfile()"><i class="fa fa-floppy-disk"></i> Save profile</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ACCOUNT SETTINGS MODAL -->
+    <div class="modal-overlay" id="accountSettingsModal">
+        <div class="modal" style="max-width:460px;">
+            <div class="modal-header">
+                <div class="modal-title">Account Settings</div>
+                <button class="modal-close" onclick="closeModal('accountSettingsModal')"><i
+                        class="fa fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="settings-section">
+                    <div class="settings-section-title"><i class="fa fa-bell"></i> Notifications</div>
+                    <div class="toggle-row">
+                        <div><label>Daily reminder</label>
+                            <div class="hint">Get reminded to check your habits</div>
+                        </div>
+                        <label class="toggle"><input type="checkbox" id="pref-reminder" onchange="savePref()"><span
+                                class="toggle-slider"></span></label>
+                    </div>
+                    <div class="toggle-row">
+                        <div><label>Streak alerts</label>
+                            <div class="hint">Notify when streak is at risk</div>
+                        </div>
+                        <label class="toggle"><input type="checkbox" id="pref-streak" onchange="savePref()"><span
+                                class="toggle-slider"></span></label>
+                    </div>
+                    <div class="toggle-row">
+                        <div><label>Weekly summary</label>
+                            <div class="hint">Sunday recap email</div>
+                        </div>
+                        <label class="toggle"><input type="checkbox" id="pref-weekly" onchange="savePref()"><span
+                                class="toggle-slider"></span></label>
+                    </div>
+                </div>
+                <div class="settings-section">
+                    <div class="settings-section-title"><i class="fa fa-eye"></i> Privacy</div>
+                    <div class="toggle-row">
+                        <div><label>Public profile</label>
+                            <div class="hint">Anyone with your link can view</div>
+                        </div>
+                        <label class="toggle"><input type="checkbox" id="pref-public" checked
+                                onchange="savePref()"><span class="toggle-slider"></span></label>
+                    </div>
+                    <div class="toggle-row">
+                        <div><label>Show streaks publicly</label>
+                            <div class="hint">Display streak counts to viewers</div>
+                        </div>
+                        <label class="toggle"><input type="checkbox" id="pref-showstreaks" checked
+                                onchange="savePref()"><span class="toggle-slider"></span></label>
+                    </div>
+                </div>
+                <div class="settings-section">
+                    <div class="settings-section-title"><i class="fa fa-palette"></i> Appearance</div>
+                    <div class="toggle-row">
+                        <div><label>Compact mode</label>
+                            <div class="hint">Reduce spacing in habit rows</div>
+                        </div>
+                        <label class="toggle"><input type="checkbox" id="pref-compact" onchange="applyCompact()"><span
+                                class="toggle-slider"></span></label>
+                    </div>
+                    <div class="toggle-row">
+                        <div><label>Show day numbers</label>
+                            <div class="hint">Show date numbers in grid</div>
+                        </div>
+                        <label class="toggle"><input type="checkbox" id="pref-daynums" checked
+                                onchange="savePref()"><span class="toggle-slider"></span></label>
+                    </div>
+                </div>
+                <div class="settings-section">
+                    <div class="settings-section-title"><i class="fa fa-download"></i> Export data</div>
+                    <p style="font-size:0.72rem;color:var(--muted);margin-bottom:0.75rem;">Download your habit data for
+                        backup or analysis.</p>
+                    <div class="export-btns">
+                        <button class="btn-export" onclick="exportJSON()"><i class="fa fa-code"></i> JSON</button>
+                        <button class="btn-export" onclick="exportCSV()"><i class="fa fa-table"></i> CSV</button>
+                    </div>
+                </div>
+                <div class="settings-section">
+                    <div class="settings-section-title" style="color:var(--red);"><i
+                            class="fa fa-triangle-exclamation"></i> Danger zone</div>
+                    <p style="font-size:0.72rem;color:var(--muted);margin-bottom:0.75rem;">These actions are
+                        irreversible. Proceed with caution.</p>
+                    <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+                        <button class="btn-danger-outline" onclick="confirmClearAll()"><i class="fa fa-trash"></i> Clear
+                            all data</button>
+                        <button class="btn-danger-outline" onclick="signOut()"><i class="fa fa-right-from-bracket"></i>
+                            Sign out</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- HABIT ANALYTICS MODAL -->
+    <div class="modal-overlay" id="habitAnalyticsModal">
+        <div class="modal" style="max-width:500px;">
+            <div class="modal-header">
+                <div class="modal-title">Habit Details</div>
+                <button class="modal-close" onclick="closeModal('habitAnalyticsModal')"><i
+                        class="fa fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="habit-analytics-hero">
+                    <div class="hab-icon-lg" id="hab-icon-lg">✦</div>
+                    <div class="hab-info">
+                        <h2 id="hab-name">—</h2>
+                        <p id="hab-since">—</p>
+                    </div>
+                </div>
+                <div class="analytics-grid" style="grid-template-columns:repeat(3,1fr);">
+                    <div class="a-card">
+                        <div class="av" id="hab-streak">0</div>
+                        <div class="al">Current streak</div>
+                    </div>
+                    <div class="a-card">
+                        <div class="av" id="hab-best">0</div>
+                        <div class="al">Best streak</div>
+                    </div>
+                    <div class="a-card">
+                        <div class="av" id="hab-pct">0%</div>
+                        <div class="al">This month</div>
+                    </div>
+                </div>
+                <div class="analytics-grid" style="grid-template-columns:repeat(3,1fr);margin-top:0.75rem;">
+                    <div class="a-card">
+                        <div class="av" id="hab-total">0</div>
+                        <div class="al">Total done</div>
+                    </div>
+                    <div class="a-card">
+                        <div class="av" id="hab-alltime-pct">0%</div>
+                        <div class="al">All-time rate</div>
+                    </div>
+                    <div class="a-card">
+                        <div class="av" id="hab-perfect">0</div>
+                        <div class="al">Perfect weeks</div>
+                    </div>
+                </div>
+                <div class="analytics-title" style="margin-top:1.25rem;">Last 30 days</div>
+                <div class="streak-grid" id="hab-30day"></div>
+                <div class="analytics-title" style="margin-top:0.75rem;">Monthly history</div>
+                <div class="chart-wrap" style="height:140px;"><canvas id="habMonthlyChart"></canvas></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- DELETE CONFIRM MODAL -->
+    <div class="modal-overlay" id="deleteModal">
+        <div class="modal" style="max-width:360px;">
+            <div class="modal-header">
+                <div class="modal-title" style="font-size:1rem;color:var(--red);">Delete habit</div>
+                <button class="modal-close" onclick="closeModal('deleteModal')"><i class="fa fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size:0.78rem;line-height:1.7;color:var(--muted);">This will permanently delete <strong
+                        id="del-habitName" style="color:var(--ink);"></strong> and all tracking data. This cannot be
+                    undone.</p>
+                <p style="font-size:0.75rem;margin-top:1rem;">Type <strong>confirm</strong> to proceed:</p>
+                <input class="confirm-input" type="text" id="confirmInput" placeholder="confirm"
+                    oninput="checkConfirmInput()" />
+                <button class="btn-confirm-del" id="btnConfirmDel" onclick="executeDelete()" disabled>Delete
+                    habit</button>
+                <button class="btn-cancel-del" onclick="closeModal('deleteModal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut as fbSignOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+        import { getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCBBu-UtD6PoCYmy1cPcHb-LJpa-YH6tZc",
+            authDomain: "consistify-by-j4h1n.firebaseapp.com",
+            projectId: "consistify-by-j4h1n",
+            storageBucket: "consistify-by-j4h1n.firebasestorage.app",
+            messagingSenderId: "695514845432",
+            appId: "1:695514845432:web:cc0c974d462fc1f3cbab0d"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // STATE
+        let currentUser = null, viewUid = null, isPublicView = false, userProfile = {}, habits = [], viewYear, viewMonth;
+        let selectedIcon = "✦", pendingDeleteId = null, habitUnsub = null, pendingHabitForAnalytics = null;
+        let monthlyChartInst = null, yearlyChartInst = null, weeklyChartInst = null, habMonthlyChartInst = null;
+        let calYear = new Date().getFullYear();
+        let activeTab = 'overview';
+
+        const EMOJI_CATEGORIES = {
+            "Health & Fitness": ["🏃", "🧘", "💪", "🚴", "🏊", "🤸", "🥗", "💊", "🥤", "😴", "🧘‍♀️", "🏋️", "⚽", "🎾", "🧗", "🥦", "🫀", "🦷", "👁️", "🚶"],
+            "Mind & Learning": ["📚", "✍️", "🧠", "🎯", "💡", "🔬", "🎓", "📖", "🗺️", "🧩", "🔭", "📝", "🖊️", "💭", "🤔", "📰", "🗃️", "🧮", "🔍", "📐"],
+            "Creative": ["🎨", "🎵", "🎸", "📸", "🎭", "✏️", "🖌️", "🎬", "🎤", "🎹", "🎺", "🎻", "📷", "🖋️", "🎙️", "🖼️", "🎠", "🎡", "🎢", "🎪"],
+            "Work & Focus": ["💼", "⏰", "📊", "🗓️", "📋", "💻", "📱", "🔧", "⚙️", "📌", "🗂️", "✅", "🔑", "📡", "💰", "📈", "🎰", "⚡", "🔋", "🌐"],
+            "Lifestyle": ["🌱", "🌿", "♻️", "🌍", "🍵", "☕", "🧹", "🏠", "🛁", "🌅", "🌙", "⭐", "🌺", "🌸", "🍀", "🏡", "🛌", "🍽️", "🛒", "🚿"],
+            "Symbols": ["✦", "◆", "▲", "●", "★", "◉", "⬡", "⬟", "✿", "❋", "♦", "♠", "♣", "♥", "⚡", "🔥", "💎", "🎯", "🏆", "🌟"]
+        };
+
+        // ── HELPERS ──
+        function today() { const d = new Date(); return { y: d.getFullYear(), m: d.getMonth(), d: d.getDate() }; }
+        function dateKey(y, m, d) { return `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`; }
+        function daysInMonth(y, m) { return new Date(y, m + 1, 0).getDate(); }
+        function getStreak(habit) { const t = today(); let s = 0; const d = new Date(t.y, t.m, t.d); while (true) { const k = dateKey(d.getFullYear(), d.getMonth(), d.getDate()); if (!habit.done || !habit.done[k]) break; s++; d.setDate(d.getDate() - 1); } return s; }
+        function getBestStreak(habit) { if (!habit.done) return 0; const keys = Object.keys(habit.done).sort(); if (!keys.length) return 0; let best = 1, cur = 1; for (let i = 1; i < keys.length; i++) { const a = new Date(keys[i - 1]), b = new Date(keys[i]); const diff = (b - a) / (1000 * 60 * 60 * 24); if (diff === 1) { cur++; best = Math.max(best, cur); } else cur = 1; } return best; }
+        function monthPct(habit, y, m) { const t = today(); const cap = (y === t.y && m === t.m) ? t.d : daysInMonth(y, m); if (cap <= 0) return 0; let done = 0; for (let d = 1; d <= cap; d++) { if (habit.done && habit.done[dateKey(y, m, d)]) done++; } return Math.round(done / cap * 100); }
+        function perfectWeeks(habit) { if (!habit.done) return 0; let count = 0; const t = today(); for (let w = 0; w < 12; w++) { let allDone = true; for (let d = 0; d < 7; d++) { const dt = new Date(); dt.setDate(dt.getDate() - (w * 7 + d)); const k = dateKey(dt.getFullYear(), dt.getMonth(), dt.getDate()); if (!habit.done[k]) { allDone = false; break; } } if (allDone) count++; } return count; }
+        function openModal(id) { document.getElementById(id).classList.add('open'); }
+        window.closeModal = (id) => { document.getElementById(id).classList.remove('open'); };
+        function closeDropdown() { document.getElementById('profileDropdown').classList.remove('open'); }
+        function showToast(msg, dur = 2500) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), dur); }
+
+        // ── CLOCK ──
+        function updateClock() {
+            const now = new Date();
+            const h = String(now.getHours()).padStart(2, '0');
+            const mi = String(now.getMinutes()).padStart(2, '0');
+            const s = String(now.getSeconds()).padStart(2, '0');
+            document.getElementById('navClock').textContent = `${h}:${mi}:${s}`;
+            document.getElementById('navClockDate').textContent = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+            document.getElementById('fsTimeH').textContent = `${h}:${mi}`;
+            document.getElementById('fsTimeSec').textContent = s;
+            document.getElementById('fsDate').textContent = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+        }
+        setInterval(updateClock, 1000); updateClock();
+
+        window.toggleFullscreenClock = (open) => {
+            const el = document.getElementById('clockFullscreen');
+            if (open === undefined) open = !el.classList.contains('open');
+            el.classList.toggle('open', open);
+        };
+
+        // ── CALENDAR DROPDOWN ──
+        function buildCalMonths() {
+            const t = today();
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const cont = document.getElementById('calMonths');
+            document.getElementById('calYear').textContent = calYear;
+            cont.innerHTML = '';
+            months.forEach((mn, mi) => {
+                const cell = document.createElement('div');
+                cell.className = 'cal-month-cell';
+                if (calYear === viewYear && mi === viewMonth) cell.classList.add('active');
+                if (calYear === t.y && mi === t.m) cell.classList.add('current-month');
+                cell.textContent = mn;
+                cell.onclick = (e) => { e.stopPropagation(); viewYear = calYear; viewMonth = mi; document.getElementById('calDropdown').classList.remove('open'); render(); };
+                cont.appendChild(cell);
+            });
+        }
+        window.toggleCalDropdown = () => {
+            const dd = document.getElementById('calDropdown');
+            dd.classList.toggle('open');
+            if (dd.classList.contains('open')) { calYear = viewYear; buildCalMonths(); }
+        };
+        window.calShiftYear = (dir) => { calYear += dir; buildCalMonths(); };
+
+        // ── URL ──
+        const urlParams = new URLSearchParams(window.location.search);
+        viewUid = urlParams.get('view');
+        if (viewUid) isPublicView = true;
+
+        onAuthStateChanged(auth, async user => {
+            if (isPublicView) { currentUser = null; await loadPublicView(); return; }
+            if (!user) { window.location.href = '../Login/'; return; }
+            currentUser = user;
+            await loadUserProfile();
+            setupNavAvatar();
+            subscribeHabits();
+            document.getElementById('loadingScreen').style.display = 'none';
+            document.getElementById('fab').style.display = 'flex';
+            const t = today(); setView(t.y, t.m);
+            loadPrefs();
+        });
+
+        async function loadPublicView() {
+            document.getElementById('publicBadge').style.display = 'block';
+            document.getElementById('addDrawer').style.display = 'none';
+            document.getElementById('avatarBtn').style.display = 'none';
+            document.getElementById('addHint').style.display = 'none';
+            const profDoc = await getDoc(doc(db, 'users', viewUid));
+            if (!profDoc.exists()) { document.getElementById('habitList').innerHTML = '<div style="text-align:center;padding:4rem;color:var(--muted);">Tracker not found.</div>'; document.getElementById('loadingScreen').style.display = 'none'; return; }
+            userProfile = profDoc.data();
+            document.title = `${userProfile.displayName || 'User'}'s Consistify`;
+            // Show viewer bar
+            const vb = document.getElementById('viewerBar');
+            vb.style.display = 'flex';
+            document.getElementById('viewerNameEl').textContent = userProfile.displayName || 'User';
+            const va = document.getElementById('viewerAvatarEl');
+            if (userProfile.photoURL) { va.innerHTML = `<img src="${userProfile.photoURL}"/>`; }
+            else { va.textContent = (userProfile.displayName || 'U')[0].toUpperCase(); }
+            await loadHabitsOnce(viewUid);
+            document.getElementById('loadingScreen').style.display = 'none';
+            const t = today(); setView(t.y, t.m);
+        }
+
+        async function loadUserProfile() {
+            const ref = doc(db, 'users', currentUser.uid);
+            const snap = await getDoc(ref);
+            if (!snap.exists()) {
+                const username = currentUser.email.split('@')[0].replace(/[^a-zA-Z0-9_]/g, '').toLowerCase();
+                userProfile = { displayName: currentUser.displayName || 'User', email: currentUser.email, photoURL: currentUser.photoURL || '', username, bio: '', createdAt: serverTimestamp() };
+                await setDoc(ref, userProfile);
+            } else { userProfile = snap.data(); }
+        }
+
+        function setupNavAvatar() {
+            const btn = document.getElementById('avatarBtn');
+            btn.style.display = 'flex';
+            if (userProfile.photoURL) { btn.innerHTML = `<img src="${userProfile.photoURL}" alt="avatar"/>`; }
+            else { btn.textContent = (userProfile.displayName || 'U')[0].toUpperCase(); }
+        }
+
+        function subscribeHabits() {
+            if (habitUnsub) habitUnsub();
+            const q = query(collection(db, 'users', currentUser.uid, 'habits'), orderBy('createdAt', 'asc'));
+            habitUnsub = onSnapshot(q, snap => { habits = snap.docs.map(d => ({ id: d.id, ...d.data() })); render(); });
+        }
+
+        async function loadHabitsOnce(uid) {
+            const q = query(collection(db, 'users', uid, 'habits'), orderBy('createdAt', 'asc'));
+            const snap = await getDocs(q);
+            habits = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        }
+
+        // ── FAB / DRAWER ──
+        window.toggleAddDrawer = () => {
+            const drawer = document.getElementById('addDrawer');
+            const fab = document.getElementById('fab');
+            drawer.classList.toggle('open');
+            fab.classList.toggle('open');
+            if (drawer.classList.contains('open')) setTimeout(() => document.getElementById('habitInput').focus(), 350);
+        };
+
+        // ── ADD HABIT ──
+        window.addHabit = async () => {
+            const input = document.getElementById('habitInput');
+            const name = input.value.trim();
+            if (!name || !currentUser) return;
+            const id = Date.now().toString();
+            const ref = doc(db, 'users', currentUser.uid, 'habits', id);
+            await setDoc(ref, { name, icon: selectedIcon, done: {}, createdAt: serverTimestamp() });
+            input.value = '';
+            showToast('Habit added! ✦');
+            // Close drawer
+            document.getElementById('addDrawer').classList.remove('open');
+            document.getElementById('fab').classList.remove('open');
+        };
+        document.getElementById('habitInput').addEventListener('keydown', e => { if (e.key === 'Enter') window.addHabit(); });
+
+        // ── TOGGLE DAY ──
+        window.toggleDay = async (habitId, y, m, d) => {
+            if (isPublicView || !currentUser) return;
+            const t = today();
+            if (y > t.y || (y === t.y && m > t.m) || (y === t.y && m === t.m && d > t.d)) return;
+            const habit = habits.find(h => h.id === habitId);
+            if (!habit) return;
+            const k = dateKey(y, m, d);
+            const newDone = { ...(habit.done || {}) };
+            if (newDone[k]) delete newDone[k]; else newDone[k] = true;
+            const ref = doc(db, 'users', currentUser.uid, 'habits', habitId);
+            await updateDoc(ref, { done: newDone });
+        };
+
+        // ── DELETE ──
+        window.promptDelete = (habitId) => {
+            const h = habits.find(h => h.id === habitId); if (!h) return;
+            pendingDeleteId = habitId;
+            document.getElementById('del-habitName').textContent = `"${h.name}"`;
+            document.getElementById('confirmInput').value = '';
+            document.getElementById('btnConfirmDel').disabled = true;
+            openModal('deleteModal');
+        };
+        window.checkConfirmInput = () => {
+            const v = document.getElementById('confirmInput').value;
+            document.getElementById('btnConfirmDel').disabled = (v.toLowerCase() !== 'confirm');
+        };
+        window.executeDelete = async () => {
+            if (!pendingDeleteId || !currentUser) return;
+            await deleteDoc(doc(db, 'users', currentUser.uid, 'habits', pendingDeleteId));
+            pendingDeleteId = null; closeModal('deleteModal'); showToast('Habit deleted.');
+        };
+
+        // ── HABIT ANALYTICS ──
+        window.openHabitAnalytics = (habitId) => {
+            const h = habits.find(h => h.id === habitId); if (!h) return;
+            pendingHabitForAnalytics = h;
+            document.getElementById('hab-icon-lg').textContent = h.icon;
+            document.getElementById('hab-name').textContent = h.name;
+            const keys = h.done ? Object.keys(h.done).sort() : [];
+            document.getElementById('hab-since').textContent = keys.length ? `Since ${new Date(keys[0]).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}` : ' No data yet';
+            document.getElementById('hab-streak').textContent = getStreak(h);
+            document.getElementById('hab-best').textContent = getBestStreak(h);
+            const t = today();
+            document.getElementById('hab-pct').textContent = monthPct(h, t.y, t.m) + '%';
+            document.getElementById('hab-total').textContent = keys.length;
+            // All-time rate
+            const firstDate = keys.length ? new Date(keys[0]) : new Date();
+            const totalDays = Math.max(1, Math.ceil((new Date() - firstDate) / (1000 * 60 * 60 * 24)));
+            document.getElementById('hab-alltime-pct').textContent = Math.round(keys.length / totalDays * 100) + '%';
+            document.getElementById('hab-perfect').textContent = perfectWeeks(h);
+            // Last 30 days grid
+            const grid = document.getElementById('hab-30day');
+            grid.innerHTML = '';
+            const dayNames = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+            dayNames.forEach(dn => { const c = document.createElement('div'); c.className = 'sg-cell'; c.style.cssText = 'background:none;color:var(--muted);font-size:0.5rem;font-weight:500;'; c.textContent = dn; grid.appendChild(c); });
+            for (let i = 29; i >= 0; i--) {
+                const dt = new Date(); dt.setDate(dt.getDate() - i);
+                const k = dateKey(dt.getFullYear(), dt.getMonth(), dt.getDate());
+                const done = !!(h.done && h.done[k]);
+                const isT = (i === 0);
+                const c = document.createElement('div');
+                c.className = 'sg-cell' + (done ? ' done' : '') + (isT ? ' today' : '');
+                c.title = dt.toLocaleDateString();
+                if (done) c.textContent = '✓';
+                grid.appendChild(c);
+            }
+            // Monthly chart for this habit
+            const mLabels = [], mData = [];
+            for (let i = 5; i >= 0; i--) {
+                let my = t.y, mm = t.m - i; if (mm < 0) { mm += 12; my--; }
+                mLabels.push(new Date(my, mm, 1).toLocaleDateString('en-US', { month: 'short' }));
+                mData.push(monthPct(h, my, mm));
+            }
+            if (habMonthlyChartInst) habMonthlyChartInst.destroy();
+            const ctx = document.getElementById('habMonthlyChart').getContext('2d');
+            habMonthlyChartInst = new Chart(ctx, { type: 'bar', data: { labels: mLabels, datasets: [{ label: '%', data: mData, backgroundColor: 'rgba(201,168,76,0.3)', borderColor: '#c9a84c', borderWidth: 1.5, borderRadius: 2 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, max: 100, ticks: { font: { family: 'DM Mono', size: 9 }, color: '#8a8070', callback: v => v + '%' }, grid: { color: 'rgba(14,14,14,0.05)' } }, x: { ticks: { font: { family: 'DM Mono', size: 9 }, color: '#8a8070' }, grid: { display: false } } } } });
+            openModal('habitAnalyticsModal');
+        };
+
+        // ── EMOJI PICKER ──
+        function buildEmojiContent(filter = '') {
+            const cont = document.getElementById('emojiContent'); cont.innerHTML = '';
+            for (const [cat, emojis] of Object.entries(EMOJI_CATEGORIES)) {
+                const filtered = filter ? emojis.filter(() => cat.toLowerCase().includes(filter.toLowerCase())) : emojis;
+                if (filter) {
+                    const allMatch = emojis.filter(e => cat.toLowerCase().includes(filter.toLowerCase()));
+                    if (!allMatch.length && !emojis.some(e => e.includes(filter))) continue;
+                }
+                const catEl = document.createElement('div'); catEl.className = 'emoji-category'; catEl.textContent = cat;
+                const grid = document.createElement('div'); grid.className = 'emoji-grid';
+                emojis.forEach(e => {
+                    if (filter && !cat.toLowerCase().includes(filter.toLowerCase())) return;
+                    const el = document.createElement('div');
+                    el.className = 'emoji-item' + (e === selectedIcon ? ' selected' : '');
+                    el.textContent = e; el.onclick = () => selectIcon(e);
+                    grid.appendChild(el);
+                });
+                if (grid.children.length) { cont.appendChild(catEl); cont.appendChild(grid); }
+            }
+        }
+
+        window.openEmojiPicker = (evt) => {
+            evt.stopPropagation();
+            const popup = document.getElementById('emojiPopup');
+            const btn = document.getElementById('iconPickerBtn');
+            const rect = btn.getBoundingClientRect();
+            popup.style.left = Math.max(8, rect.left) + 'px';
+            popup.style.top = (rect.bottom + 6) + 'px';
+            popup.classList.toggle('open');
+            if (popup.classList.contains('open')) { buildEmojiContent(); document.getElementById('emojiSearch').focus(); }
+        };
+        window.filterEmojis = () => buildEmojiContent(document.getElementById('emojiSearch').value);
+        function selectIcon(icon) { selectedIcon = icon; document.getElementById('selectedIconPreview').textContent = icon; document.getElementById('emojiPopup').classList.remove('open'); buildEmojiContent(); }
+
+        document.addEventListener('click', e => {
+            if (!e.target.closest('#emojiPopup') && !e.target.closest('#iconPickerBtn')) document.getElementById('emojiPopup').classList.remove('open');
+            if (!e.target.closest('#profileDropdown') && !e.target.closest('#avatarBtn')) document.getElementById('profileDropdown').classList.remove('open');
+            if (!e.target.closest('.month-picker-wrap')) document.getElementById('calDropdown').classList.remove('open');
+        });
+
+        // ── PROFILE DROPDOWN ──
+        window.toggleProfileDropdown = () => {
+            const pd = document.getElementById('profileDropdown'); pd.classList.toggle('open');
+            if (pd.classList.contains('open')) {
+                const av = document.getElementById('pdAvatar');
+                if (userProfile.photoURL) av.innerHTML = `<img src="${userProfile.photoURL}"/>`;
+                else av.textContent = (userProfile.displayName || 'U')[0].toUpperCase();
+                document.getElementById('pdName').textContent = userProfile.displayName || 'User';
+                document.getElementById('pdEmail').textContent = userProfile.email || '';
+            }
+        };
+        window.signOut = async () => { await fbSignOut(auth); window.location.href = '../Login/'; };
+
+        // ── ANALYTICS TABS ──
+        window.switchTab = (tab) => {
+            activeTab = tab;
+            document.querySelectorAll('.tab-btn').forEach((b, i) => { const tabs = ['overview', 'monthly', 'yearly', 'habits']; b.classList.toggle('active', tabs[i] === tab); });
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            document.getElementById('tab-' + tab).classList.add('active');
+        };
+
+        // ── VIEW PROFILE ──
+        window.openViewProfile = () => {
+            closeDropdown();
+            const av = document.getElementById('vp-avatar');
+            if (userProfile.photoURL) av.innerHTML = `<img src="${userProfile.photoURL}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/>`;
+            else av.textContent = (userProfile.displayName || 'U')[0].toUpperCase();
+            document.getElementById('vp-name').textContent = userProfile.displayName || 'User';
+            document.getElementById('vp-username').textContent = `@${userProfile.username || 'username'}`;
+            document.getElementById('vp-bio').textContent = userProfile.bio || '';
+            const uid = currentUser ? currentUser.uid : viewUid;
+            const url = `${window.location.origin}${window.location.pathname}?view=${uid}`;
+            document.getElementById('vp-shareUrl').value = url;
+            buildAnalytics();
+            openModal('viewProfileModal');
+        };
+
+        function buildAnalytics() {
+            const t = today();
+            // Overview stats
+            let totalDone = 0, totalCap = 0, bestSt = 0, allTimeDone = 0, activeDays = new Set();
+            habits.forEach(h => {
+                for (let d = 1; d <= t.d; d++) { totalCap++; if (h.done && h.done[dateKey(t.y, t.m, d)]) totalDone++; }
+                const s = getStreak(h); if (s > bestSt) bestSt = s;
+                if (h.done) Object.keys(h.done).forEach(k => { allTimeDone++; activeDays.add(k); });
+            });
+            const rate = totalCap > 0 ? Math.round(totalDone / totalCap * 100) : 0;
+            document.getElementById('an-monthRate').textContent = rate + '%';
+            document.getElementById('an-bestStreak').textContent = bestSt;
+            document.getElementById('an-totalDone').textContent = totalDone;
+            document.getElementById('an-allDone').textContent = allTimeDone;
+            let globalBest = 0; habits.forEach(h => { const b = getBestStreak(h); if (b > globalBest) globalBest = b; });
+            document.getElementById('an-allStreak').textContent = globalBest;
+            document.getElementById('an-habCount').textContent = habits.length;
+            document.getElementById('an-activeDays').textContent = activeDays.size;
+
+            // Heatmap
+            const hm = document.getElementById('yearlyHeatmap'); hm.innerHTML = '';
+            const start = new Date(); start.setDate(start.getDate() - 363);
+            for (let i = 0; i < 364; i++) {
+                const d = new Date(start); d.setDate(start.getDate() + i);
+                const k = dateKey(d.getFullYear(), d.getMonth(), d.getDate());
+                let count = 0; habits.forEach(h => { if (h.done && h.done[k]) count++; });
+                const lvl = count === 0 ? '' : (count <= Math.ceil(habits.length * 0.25) ? 'l1' : (count <= Math.ceil(habits.length * 0.5) ? 'l2' : (count <= Math.ceil(habits.length * 0.75) ? 'l3' : 'l4')));
+                const cell = document.createElement('div'); cell.className = 'hm-cell' + (lvl ? ' ' + lvl : ''); cell.title = `${d.toLocaleDateString()}: ${count} habits`; hm.appendChild(cell);
+            }
+
+            // Monthly chart
+            const monthLabels = [], monthData = [];
+            for (let i = 5; i >= 0; i--) {
+                let my = t.y, mm = t.m - i; if (mm < 0) { mm += 12; my--; }
+                monthLabels.push(new Date(my, mm, 1).toLocaleDateString('en-US', { month: 'short' }));
+                let done = 0, cap = 0;
+                const capD = (my === t.y && mm === t.m) ? t.d : daysInMonth(my, mm);
+                habits.forEach(h => { for (let d = 1; d <= capD; d++) { cap++; if (h.done && h.done[dateKey(my, mm, d)]) done++; } });
+                monthData.push(cap > 0 ? Math.round(done / cap * 100) : 0);
+            }
+            if (monthlyChartInst) monthlyChartInst.destroy();
+            const ctx1 = document.getElementById('monthlyChart').getContext('2d');
+            monthlyChartInst = new Chart(ctx1, { type: 'bar', data: { labels: monthLabels, datasets: [{ label: 'Consistency %', data: monthData, backgroundColor: 'rgba(201,168,76,0.3)', borderColor: '#c9a84c', borderWidth: 1.5, borderRadius: 2 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, max: 100, ticks: { font: { family: 'DM Mono', size: 10 }, color: '#8a8070', callback: v => v + '%' }, grid: { color: 'rgba(14,14,14,0.05)' } }, x: { ticks: { font: { family: 'DM Mono', size: 10 }, color: '#8a8070' }, grid: { display: false } } } } });
+
+            // Weekly breakdown
+            const wLabels = ['Wk1', 'Wk2', 'Wk3', 'Wk4'], wData = [0, 0, 0, 0];
+            for (let w = 0; w < 4; w++) { let done = 0, cap = 0; for (let d = w * 7 + 1; d <= Math.min((w + 1) * 7, t.d); d++) { habits.forEach(h => { cap++; if (h.done && h.done[dateKey(t.y, t.m, d)]) done++; }); } wData[w] = cap > 0 ? Math.round(done / cap * 100) : 0; }
+            if (weeklyChartInst) weeklyChartInst.destroy();
+            const ctxW = document.getElementById('weeklyChart').getContext('2d');
+            weeklyChartInst = new Chart(ctxW, { type: 'line', data: { labels: wLabels, datasets: [{ label: '%', data: wData, borderColor: '#8a6b22', backgroundColor: 'rgba(201,168,76,0.08)', borderWidth: 1.5, pointRadius: 4, pointBackgroundColor: '#c9a84c', fill: true, tension: 0.3 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, max: 100, ticks: { font: { family: 'DM Mono', size: 10 }, color: '#8a8070', callback: v => v + '%' }, grid: { color: 'rgba(14,14,14,0.05)' } }, x: { ticks: { font: { family: 'DM Mono', size: 10 }, color: '#8a8070' }, grid: { display: false } } } } });
+
+            // Yearly chart
+            const yLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const yData = yLabels.map((_, mi) => {
+                const capD = (mi === t.m) ? t.d : ((mi > t.m) ? 0 : daysInMonth(t.y, mi)); if (capD === 0) return 0;
+                let done = 0, cap = 0; habits.forEach(h => { for (let d = 1; d <= capD; d++) { cap++; if (h.done && h.done[dateKey(t.y, mi, d)]) done++; } });
+                return cap > 0 ? Math.round(done / cap * 100) : 0;
+            });
+            if (yearlyChartInst) yearlyChartInst.destroy();
+            const ctx2 = document.getElementById('yearlyChart').getContext('2d');
+            yearlyChartInst = new Chart(ctx2, { type: 'line', data: { labels: yLabels, datasets: [{ label: 'Consistency %', data: yData, borderColor: '#8a6b22', backgroundColor: 'rgba(201,168,76,0.08)', borderWidth: 1.5, pointRadius: 3, pointBackgroundColor: '#c9a84c', fill: true, tension: 0.3 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, max: 100, ticks: { font: { family: 'DM Mono', size: 10 }, color: '#8a8070', callback: v => v + '%' }, grid: { color: 'rgba(14,14,14,0.05)' } }, x: { ticks: { font: { family: 'DM Mono', size: 10 }, color: '#8a8070' }, grid: { display: false } } } } });
+
+            // Best months list
+            const bml = document.getElementById('bestMonthsList'); bml.innerHTML = '';
+            const scored = yData.map((v, i) => ({ month: yLabels[i], pct: v })).filter(x => x.pct > 0).sort((a, b) => b.pct - a.pct).slice(0, 4);
+            scored.forEach(({ month, pct }) => {
+                const row = document.createElement('div');
+                row.style.cssText = 'display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;';
+                row.innerHTML = `<span style="font-size:0.75rem;width:30px;">${month}</span><div style="flex:1;height:5px;background:var(--cream);border-radius:2px;overflow:hidden;"><div style="width:${pct}%;height:100%;background:var(--gold);border-radius:2px;"></div></div><span style="font-size:0.68rem;color:var(--muted);min-width:30px;text-align:right;">${pct}%</span>`;
+                bml.appendChild(row);
+            });
+
+            // Per-habit breakdown
+            const bd = document.getElementById('habitBreakdown'); bd.innerHTML = '';
+            habits.forEach(h => {
+                let done = 0; for (let d = 1; d <= t.d; d++) { if (h.done && h.done[dateKey(t.y, t.m, d)]) done++; }
+                const pct = t.d > 0 ? Math.round(done / t.d * 100) : 0;
+                const row = document.createElement('div'); row.style.cssText = 'display:flex;align-items:center;gap:0.75rem;margin-bottom:0.6rem;';
+                row.innerHTML = `<span style="font-size:1rem;width:20px;text-align:center;">${h.icon}</span><span style="font-size:0.75rem;flex:1;">${h.name}</span><div style="flex:2;height:5px;background:var(--cream);border-radius:2px;overflow:hidden;"><div style="width:${pct}%;height:100%;background:var(--gold);border-radius:2px;transition:width 0.5s;"></div></div><span style="font-size:0.68rem;color:var(--muted);min-width:30px;text-align:right;">${pct}%</span>`;
+                bd.appendChild(row);
+            });
+
+            // Streak leaderboard
+            const sl = document.getElementById('streakLeaderboard'); sl.innerHTML = '';
+            const ranked = [...habits].map(h => ({ ...h, streak: getStreak(h) })).sort((a, b) => b.streak - a.streak);
+            ranked.forEach((h, i) => {
+                const row = document.createElement('div');
+                row.style.cssText = 'display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;padding:0.6rem;background:var(--cream);border-radius:3px;';
+                const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '';
+                row.innerHTML = `<span style="font-size:0.75rem;color:var(--muted);width:16px;">${medal || '#' + (i + 1)}</span><span style="font-size:1rem;">${h.icon}</span><span style="font-size:0.75rem;flex:1;">${h.name}</span><span style="font-size:0.75rem;color:var(--gold-dark);font-family:'DM Serif Display',serif;">${h.streak}d</span>`;
+                sl.appendChild(row);
+            });
+        }
+
+        // ── EDIT PROFILE ──
+        window.openEditProfile = () => {
+            closeDropdown();
+            document.getElementById('ep-displayName').value = userProfile.displayName || '';
+            document.getElementById('ep-username').value = userProfile.username || '';
+            document.getElementById('ep-bio').value = userProfile.bio || '';
+            document.getElementById('ep-photo').value = userProfile.photoURL || '';
+            document.getElementById('ep-error').style.display = 'none';
+            openModal('editProfileModal');
+        };
+
+        window.saveProfile = async () => {
+            const dn = document.getElementById('ep-displayName').value.trim();
+            const un = document.getElementById('ep-username').value.trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
+            const bio = document.getElementById('ep-bio').value.trim();
+            const photo = document.getElementById('ep-photo').value.trim();
+            const errEl = document.getElementById('ep-error');
+            if (!dn) { errEl.textContent = 'Display name required.'; errEl.style.display = 'block'; return; }
+            if (un && !/^[a-z0-9_]{2,24}$/.test(un)) { errEl.textContent = 'Username: 2-24 chars, a-z 0-9 _ only.'; errEl.style.display = 'block'; return; }
+            errEl.style.display = 'none';
+            const updates = { displayName: dn, username: un || userProfile.username, bio, photoURL: photo };
+            await updateDoc(doc(db, 'users', currentUser.uid), updates);
+            userProfile = { ...userProfile, ...updates };
+            setupNavAvatar(); closeModal('editProfileModal'); showToast('Profile updated!');
+        };
+
+        // ── ACCOUNT SETTINGS ──
+        window.openAccountSettings = () => { closeDropdown(); openModal('accountSettingsModal'); };
+        window.savePref = () => { const p = { reminder: document.getElementById('pref-reminder').checked, streak: document.getElementById('pref-streak').checked, weekly: document.getElementById('pref-weekly').checked, public: document.getElementById('pref-public').checked, showstreaks: document.getElementById('pref-showstreaks').checked, compact: document.getElementById('pref-compact').checked, daynums: document.getElementById('pref-daynums').checked }; localStorage.setItem('consistify-prefs', JSON.stringify(p)); showToast('Settings saved!'); };
+        function loadPrefs() { const raw = localStorage.getItem('consistify-prefs'); if (!raw) return; try { const p = JSON.parse(raw);['reminder', 'streak', 'weekly', 'public', 'showstreaks', 'compact', 'daynums'].forEach(k => { const el = document.getElementById('pref-' + k); if (el && p[k] !== undefined) el.checked = p[k]; }); applyCompact(); } catch (e) { } }
+        window.applyCompact = () => { const el = document.getElementById('pref-compact'); document.body.classList.toggle('compact', el && el.checked); savePref(); };
+
+        window.exportJSON = () => {
+            const data = { profile: { displayName: userProfile.displayName, username: userProfile.username }, habits: habits.map(h => ({ name: h.name, icon: h.icon, done: h.done || {} })) };
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'consistify-habits.json'; a.click(); showToast('JSON exported!');
+        };
+        window.exportCSV = () => {
+            let csv = 'Habit,Icon,Date,Done\n';
+            habits.forEach(h => { const done = h.done || {}; Object.keys(done).sort().forEach(k => { csv += `"${h.name}","${h.icon}","${k}","true"\n`; }); });
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'consistify-habits.csv'; a.click(); showToast('CSV exported!');
+        };
+        window.confirmClearAll = () => { if (confirm('Delete ALL habit data? This cannot be undone.')) { } };
+
+        // ── SHARE ──
+        window.copyShareLink = () => {
+            const uid = currentUser ? currentUser.uid : viewUid;
+            const url = `${window.location.origin}${window.location.pathname}?view=${uid}`;
+            navigator.clipboard.writeText(url).then(() => showToast('Link copied! ↗'));
+            closeDropdown();
+        };
+
+        // ── MONTH NAVIGATION ──
+        function setView(y, m) { viewYear = y; viewMonth = m; render(); }
+        window.shiftMonth = (dir) => { viewMonth += dir; if (viewMonth > 11) { viewMonth = 0; viewYear++; } if (viewMonth < 0) { viewMonth = 11; viewYear--; } render(); };
+
+        // ── RENDER ──
+        function render() {
+            const t = today();
+            const days = daysInMonth(viewYear, viewMonth);
+            const isCurrentMonth = (viewYear === t.y && viewMonth === t.m);
+            const showDayNums = !document.getElementById('pref-daynums') || document.getElementById('pref-daynums').checked;
+
+            // Update month label
+            const label = new Date(viewYear, viewMonth, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+            const btn = document.getElementById('monthLabel');
+            btn.querySelector('span').textContent = label;
+
+            // Stats
+            const todayKey = dateKey(t.y, t.m, t.d);
+            let doneCt = 0, bestSt = 0;
+            habits.forEach(h => { if (h.done && h.done[todayKey]) doneCt++; const s = getStreak(h); if (s > bestSt) bestSt = s; });
+            const rate = habits.length ? Math.round(doneCt / habits.length * 100) : 0;
+            document.getElementById('statHabits').textContent = habits.length;
+            document.getElementById('statStreak').textContent = bestSt;
+            document.getElementById('statRate').textContent = rate + '%';
+            document.getElementById('statDone').textContent = doneCt + '/' + habits.length;
+
+            const list = document.getElementById('habitList'); list.innerHTML = '';
+
+            if (!habits.length) {
+                const empty = document.createElement('div');
+                empty.style.cssText = 'text-align:center;padding:4rem 2rem;color:var(--muted);';
+                empty.innerHTML = `<div style="font-family:DM Serif Display,serif;font-size:3rem;color:var(--cream);margin-bottom:0.5rem;">∅</div><p style="font-size:0.78rem;letter-spacing:0.08em;text-transform:uppercase;">${isPublicView ? 'No habits tracked yet.' : 'Tap + to add your first habit.'}</p>`;
+                list.appendChild(empty); return;
+            }
+
+            habits.forEach(habit => {
+                const pct = monthPct(habit, viewYear, viewMonth);
+                const s = getStreak(habit); const bs = getBestStreak(habit);
+                const row = document.createElement('div'); row.className = 'habit-row';
+
+                let dayNums = '', dayCells = '';
+                for (let d = 1; d <= days; d++) {
+                    const isFuture = isCurrentMonth && d > t.d;
+                    const isToday = isCurrentMonth && d === t.d;
+                    const k = dateKey(viewYear, viewMonth, d);
+                    const done = !!(habit.done && habit.done[k]);
+                    if (showDayNums) dayNums += `<div class="day-num${isToday ? ' today-lbl' : ''}">${d}</div>`;
+                    dayCells += `<div class="day-cell${done ? ' done' : ''}${isToday ? ' today' : ''}${isFuture ? ' future' : ''}" onclick="toggleDay('${habit.id}',${viewYear},${viewMonth},${d})" title="${new Date(viewYear, viewMonth, d).toLocaleDateString()}"></div>`;
+                }
+
+                const actionsHtml = isPublicView ? '' : `
+      <div class="habit-actions">
+        <button class="btn-icon-sm analytics" onclick="openHabitAnalytics('${habit.id}')" title="Analytics"><i class="fa fa-chart-simple"></i></button>
+        <button class="btn-icon-sm del" onclick="promptDelete('${habit.id}')" title="Delete"><i class="fa fa-trash-can"></i></button>
+      </div>`;
+
+                row.innerHTML = `
+      <div class="habit-head">
+        <span class="habit-icon">${habit.icon}</span>
+        <span class="habit-name">${habit.name}</span>
+        <div class="habit-tags">
+          ${s > 0 ? `<span class="tag tag-streak"><i class="fa fa-fire" style="font-size:0.55rem;"></i> ${s}d</span>` : ''}
+          ${bs > 1 ? `<span class="tag tag-best"><i class="fa fa-trophy" style="font-size:0.5rem;"></i> ${bs}</span>` : ''}
+          <span class="tag tag-pct">${pct}%</span>
+        </div>
+        ${actionsHtml}
+      </div>
+      <div class="habit-bar"><div class="habit-bar-fill" style="width:${pct}%"></div></div>
+      ${showDayNums ? `<div class="days-header-row" style="grid-template-columns:repeat(${days},1fr);padding:0.5rem 1.25rem 0.2rem;">${dayNums}</div>` : ''}
+      <div class="days-grid-row" style="grid-template-columns:repeat(${days},1fr);padding:0.5rem 1.25rem 1rem;">${dayCells}</div>`;
+                list.appendChild(row);
+            });
+        }
+
+        // Close modals on overlay click
+        document.querySelectorAll('.modal-overlay').forEach(o => { o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); }); });
+    </script>
+</body>
+
+</html>
