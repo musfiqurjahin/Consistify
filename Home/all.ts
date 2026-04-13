@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>Consistify · discipline tracker</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <link rel="stylesheet" href="./assets/css/home.css">
+</head>
+
+<body>
+    <div id="loader">
+        <div class="l-bar-wrap">
+            <div class="l-bar"></div>
+        </div>
+        <div class="l-text">Consistify · Loading</div>
+    </div>
+    <div class="marquee-wrap">
+        <div class="marquee-track" id="mqTrack"></div>
+    </div>
+    <nav>
+        <a class="nav-brand" href="#">
+            <div class="brand-sq">C</div>
+            <div class="brand-wordmark">Con<em>sist</em>ify</div>
+        </a>
+        <div class="nav-center">Intelligent habit tracking · Cloud native</div>
+        <div class="nav-right">
+            <button class="n-btn" onclick="openPublicView()"><i class="fa fa-eye"></i> Public</button>
+            <button class="n-btn n-btn-fill" onclick="goLogin()">Sign in <i class="fa fa-arrow-right"></i></button>
+        </div>
+    </nav>
+    <section class="hero">
+        <div class="hero-l">
+            <div>
+                <div class="hero-eyebrow">
+                    <div class="eyebrow-dot"></div>Habit intelligence · Est. 2026
+                </div>
+                <h1 class="hero-h1">Build your<br><span class="line2">discipline.</span><span class="line3">Track
+                        it.</span></h1>
+            </div>
+            <div class="hero-meta">
+                <p class="hero-desc">Visual calendars, streaks, deep analytics — all in one minimal interface. Your data
+                    syncs everywhere. Share progress publicly with a single link.</p>
+                <div class="hero-cta-stack">
+                    <button class="h-btn" onclick="goLogin()"><i class="fa fa-rocket"></i> Start free <i
+                            class="fa fa-arrow-right"></i></button>
+                    <button class="h-btn h-btn-ghost" onclick="openPublicView()"><i class="fa fa-users"></i> See
+                        example</button>
+                </div>
+            </div>
+        </div>
+        <div class="hero-r">
+            <div class="hero-stats-row">
+                <div class="hstat">
+                    <div class="hstat-val">98<span style="font-size:1.2rem;">%</span></div>
+                    <div class="hstat-lbl">Retention</div>
+                    <div class="hstat-accent"></div>
+                </div>
+                <div class="hstat">
+                    <div class="hstat-val">∞</div>
+                    <div class="hstat-lbl">Cloud sync</div>
+                    <div class="hstat-accent"></div>
+                </div>
+                <div class="hstat">
+                    <div class="hstat-val">1</div>
+                    <div class="hstat-lbl">Tap share</div>
+                    <div class="hstat-accent"></div>
+                </div>
+                <div class="hstat">
+                    <div class="hstat-val">Free</div>
+                    <div class="hstat-lbl">Forever</div>
+                    <div class="hstat-accent"></div>
+                </div>
+            </div>
+            <div class="hero-widget">
+                <div class="hw-label">Live preview</div>
+                <div class="hw-month">
+                    <div class="hw-month-name" id="hwMonthName">April 2026</div>
+                    <div class="hw-navs"><button class="hw-nav"><i class="fa fa-chevron-left"></i></button><button
+                            class="hw-nav"><i class="fa fa-chevron-right"></i></button></div>
+                </div>
+                <div class="hw-habit">
+                    <div class="hw-hhead"><span class="hw-hicon">🏃</span><span class="hw-hname">Morning run</span><span
+                            class="hw-hst">🔥 16</span></div>
+                    <div class="hw-dots" style="grid-template-columns:repeat(13,1fr);" id="hd1"></div>
+                </div>
+                <div class="hw-habit">
+                    <div class="hw-hhead"><span class="hw-hicon">📚</span><span class="hw-hname">Read 30 min</span><span
+                            class="hw-hst">🔥 9</span></div>
+                    <div class="hw-dots" style="grid-template-columns:repeat(13,1fr);" id="hd2"></div>
+                </div>
+                <div class="hw-habit">
+                    <div class="hw-hhead"><span class="hw-hicon">💧</span><span class="hw-hname">Hydrate 2L</span><span
+                            class="hw-hst">🔥 24</span></div>
+                    <div class="hw-dots" style="grid-template-columns:repeat(13,1fr);" id="hd3"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <div class="section-rule sr"><span class="section-rule-label">Features</span>
+        <div class="section-rule-line"></div><span class="section-rule-num">01</span>
+    </div>
+    <div class="features">
+        <div class="feat sr" data-n="1">
+            <div class="feat-tag">Track</div>
+            <div class="feat-icon-wrap"><i class="fa fa-calendar-check"></i></div>
+            <h3>Visual grids</h3>
+            <p>Month-by-month dot grids with checkmarks. Your entire year at a glance. Toggle any day in one tap.</p>
+        </div>
+        <div class="feat sr sr-d1" data-n="2">
+            <div class="feat-tag">Analyse</div>
+            <div class="feat-icon-wrap"><i class="fa fa-chart-pie"></i></div>
+            <h3>Deep analytics</h3>
+            <p>Monthly rates, yearly heatmaps, streak leaderboards, per-habit charts. Know your patterns precisely.</p>
+        </div>
+        <div class="feat sr sr-d2" data-n="3">
+            <div class="feat-tag">Streaks</div>
+            <div class="feat-icon-wrap"><i class="fa fa-fire"></i></div>
+            <h3>Streak engine</h3>
+            <p>Current and best streak per habit. Automatic tracking, visual badges, daily motivation to keep going.</p>
+        </div>
+        <div class="feat sr" data-n="4">
+            <div class="feat-tag">Sync</div>
+            <div class="feat-icon-wrap"><i class="fa fa-cloud-arrow-up"></i></div>
+            <h3>Cloud sync</h3>
+            <p>Firestore-backed. Every check-in syncs instantly to all your devices. No setup, just sign in with Google.
+            </p>
+        </div>
+        <div class="feat sr sr-d1" data-n="5">
+            <div class="feat-tag">Share</div>
+            <div class="feat-icon-wrap"><i class="fa fa-share-nodes"></i></div>
+            <h3>Public tracker</h3>
+            <p>One link shares your progress. Friends can view your tracker without an account. Privacy-first design.
+            </p>
+        </div>
+        <div class="feat sr sr-d2" data-n="6">
+            <div class="feat-tag">Export</div>
+            <div class="feat-icon-wrap"><i class="fa fa-download"></i></div>
+            <h3>Export anything</h3>
+            <p>Download complete history as JSON or CSV. Your data is yours. Portable, readable, forever accessible.</p>
+        </div>
+    </div>
+    <div class="section-rule sr"><span class="section-rule-label">Process</span>
+        <div class="section-rule-line"></div><span class="section-rule-num">02</span>
+    </div>
+    <div class="how">
+        <div class="how-left sr">
+            <h2>Up and running<br>in <em>two minutes.</em></h2>
+        </div>
+        <div class="how-right">
+            <div class="step sr">
+                <div class="step-num">01</div>
+                <h4>Sign in with Google</h4>
+                <p>One click. No passwords, no forms. Your account is created instantly and securely.</p>
+                <div class="step-arrow"></div>
+            </div>
+            <div class="step sr sr-d1">
+                <div class="step-num">02</div>
+                <h4>Add your habits</h4>
+                <p>Tap the + button, name your habit, pick an icon. First habit ready in seconds.</p>
+                <div class="step-arrow"></div>
+            </div>
+            <div class="step sr sr-d2">
+                <div class="step-num">03</div>
+                <h4>Build your streak</h4>
+                <p>Check off each day, watch streaks grow, analyse patterns, share your wins.</p>
+            </div>
+        </div>
+    </div>
+    <div class="ticker-section">
+        <div class="ticker-inner" id="ticker"></div>
+    </div>
+    <div class="section-rule sr"><span class="section-rule-label">Voices</span>
+        <div class="section-rule-line"></div><span class="section-rule-num">03</span>
+    </div>
+    <div class="testimonials">
+        <div class="testi sr"><span class="testi-q">"</span>
+            <p class="testi-text">The interface is genuinely different. I open it every morning because it feels
+                intentional — not like another app trying to gamify my life.</p>
+            <div class="testi-divider"></div>
+            <div class="testi-who">
+                <div class="testi-init">RK</div>
+                <div>
+                    <div class="testi-name">J4H1N</div>
+                    <div class="testi-role">Product designer · 68-day streak</div>
+                </div>
+            </div>
+        </div>
+        <div class="testi sr sr-d1"><span class="testi-q">"</span>
+            <p class="testi-text">Public sharing changed everything. My accountability partner can see my tracker and we
+                both stay consistent. The social pressure is real.</p>
+            <div class="testi-divider"></div>
+            <div class="testi-who">
+                <div class="testi-init">AM</div>
+                <div>
+                    <div class="testi-name">J4H1N</div>
+                    <div class="testi-role">Software engineer · 41-day streak</div>
+                </div>
+            </div>
+        </div>
+        <div class="testi sr sr-d2"><span class="testi-q">"</span>
+            <p class="testi-text">The yearly heatmap is addictive. Seeing an entire year of effort in one view makes you
+                protective of every single square. Never missed a day.</p>
+            <div class="testi-divider"></div>
+            <div class="testi-who">
+                <div class="testi-init">SL</div>
+                <div>
+                    <div class="testi-name">J4H1N</div>
+                    <div class="testi-role">Developer · 112-day streak</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="section-rule sr"><span class="section-rule-label">Get started</span>
+        <div class="section-rule-line"></div><span class="section-rule-num">04</span>
+    </div>
+    <div class="big-cta sr">
+        <div class="cta-l">
+            <h2>Ready to build<br><em>your best self?</em></h2>
+            <p class="cta-l-sub">Sign in with Google and start tracking in under two minutes. No credit card. No setup.
+                No excuses.</p>
+        </div>
+        <div class="cta-r">
+            <div class="cta-form-note">Choose how to continue</div>
+            <div class="cta-btns">
+                <button class="big-btn" onclick="goLogin()"><span><i class="fa-brands fa-google"></i> &nbsp;Sign in with
+                        Google</span><i class="fa fa-arrow-right"></i></button>
+                <button class="big-btn big-btn-ghost" onclick="openPublicView()"><span><i class="fa fa-eye"></i>
+                        &nbsp;View public tracker</span><i class="fa fa-external-link-alt"
+                        style="font-size:0.8rem;"></i></button>
+            </div>
+            <div class="cta-guarantee"><i class="fa fa-shield-halved"></i> Free forever · Google-secured · No spam</div>
+        </div>
+    </div>
+    <footer>
+        <div class="footer-brand-cell">
+            <div class="footer-brand-name">Con<em>sist</em>ify</div>
+            <div class="footer-tagline">Intelligent habits · 2026</div>
+        </div>
+        <div class="footer-links-cell"><a class="footer-link" href="#" onclick="goLogin();return false;">Login</a><a
+                class="footer-link" href="#" onclick="openPublicView();return false;">Public view</a><a
+                class="footer-link" href="#">Privacy policy</a></div>
+        <div class="footer-copy-cell">
+            <div class="footer-copy">Built to help you keep your promises to yourself. No ads, no upsells, no noise.
+            </div>
+            <div class="footer-dev">Developed by <span>J4H1N</span></div>
+        </div>
+    </footer>
+
+    <script src="./assets/js/home.js"></script>
+</body>
+
+</html>
