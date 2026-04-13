@@ -13,7 +13,7 @@
         const uid = prompt('Enter shared tracker ID:', prefilled);
         if (uid && uid.trim()) {
             document.getElementById('loader').classList.remove('gone');
-            setTimeout(() => window.location.href = `../DashBoard/index.html?view=${uid.trim()}`, 200);
+            setTimeout(() => window.location.href = `../Dashboard/index.html?view=${uid.trim()}`, 200);
         }
     };
 
