@@ -94,7 +94,18 @@
         .nav-brand {
             font-family: 'DM Serif Display', serif;
             font-size: 1.4rem;
-            letter-spacing: -0.02em
+            letter-spacing: -0.02em;
+            text-decoration: none;
+            /* remove underline */
+            color: inherit;
+            /* keep original text color */
+        }
+
+        .nav-brand:visited,
+        .nav-brand:active,
+        .nav-brand:hover {
+            color: inherit;
+            text-decoration: none;
         }
 
         .nav-brand em {
